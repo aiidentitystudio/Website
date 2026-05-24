@@ -424,6 +424,7 @@ async function doLogin(){
     const correctPass = PASSWORDS[username];
     if(user && correctPass && correctPass===password){
       currentUser = {...user};
+      localStorage.setItem('session', JSON.stringify({...user, page:'dashboard'}));
       document.getElementById('login-page').style.display='none';
       document.getElementById('app').style.display='block';
       initApp();
@@ -440,6 +441,7 @@ async function doLogin(){
 
 function doLogout(){
   currentUser=null;
+  localStorage.removeItem('session');
   document.getElementById('app').style.display='none';
   document.getElementById('login-page').style.display='flex';
   document.getElementById('inp-user').value='';
@@ -503,6 +505,8 @@ function navTo(key, el){
   const pg = document.getElementById('page-'+key);
   if(pg) pg.classList.add('active');
   activePage = key;
+  const _s = JSON.parse(localStorage.getItem('session')||'{}');
+  if(_s.username){ _s.page = key; localStorage.setItem('session', JSON.stringify(_s)); }
   renderCurrentPage();
 }
 
@@ -755,6 +759,20 @@ function closeModalOverlay(e){
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape') closeModal();
 });
+// Restore session saat refresh
+(function(){
+  const s = JSON.parse(localStorage.getItem('session')||'null');
+  if(s && s.username && PASSWORDS[s.username]){
+    currentUser = s;
+    document.getElementById('login-page').style.display='none';
+    document.getElementById('app').style.display='block';
+    initApp();
+    loadAll().then(()=>{
+      const activeBtn = document.querySelector('.nav-item.active');
+      navTo(s.page||'dashboard', activeBtn);
+    });
+  }
+})();
 </script>
 </body>
 </html>
