@@ -87,7 +87,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .stat-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .stat-label{font-size:12px;color:var(--muted);font-weight:500}
 .stat-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center}
-.stat-value{font-size:22px;font-weight:700;color:#fff;font-family:'Syne',sans-serif;line-height:1}
+.stat-value{font-size:clamp(14px,2.2vw,22px);font-weight:700;color:#fff;font-family:'Syne',sans-serif;line-height:1.2;word-break:break-word}
 .stat-sub{font-size:11px;color:var(--muted);margin-top:4px}
 
 /* ── TABLE ── */
@@ -355,7 +355,7 @@ const CSV = {
   dokumen:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1891807759&single=true&output=csv',
   users:       'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=518898558&single=true&output=csv',
 };
-const LOOKER_URL = ''; // Isi URL embed Looker Studio di sini
+const LOOKER_URL = 'https://datastudio.google.com/embed/reporting/006b75a2-edbe-42bc-88f8-45dfbc7f435a/page/JjBzF'; // Isi URL embed Looker Studio di sini
 
 // Password tetap di kode (tidak disimpan di spreadsheet)
 const PASSWORDS = { admin:'admin123', mitra01:'mitra123', mitra02:'mitra456' };
