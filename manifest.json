@@ -2,7 +2,7 @@
   "name": "NURRAHMA ADMIN",
   "short_name": "NURRAHMA",
   "description": "Panel Admin & Rekap Data NURRAHMA",
-  "start_url": "/Website/admin-dashboard.html",
+  "start_url": "/Website/index.html",
   "scope": "/Website/",
   "display": "standalone",
   "orientation": "portrait-primary",
