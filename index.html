@@ -3,7 +3,17 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>NURRAHMA</title>
+<title>NURRAHMA ADMIN</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#080c14"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="NURRAHMA"/>
+<link rel="apple-touch-icon" href="icons/icon-192x192.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -54,7 +64,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* ── SIDEBAR ── */
 .sidebar{display:flex;flex-direction:column;height:100%;width:240px;background:rgba(255,255,255,.03);border-right:1px solid var(--border);transition:width .3s;flex-shrink:0;overflow:hidden}
-.sidebar.collapsed{width:0;border-right:none}
+.sidebar.collapsed{width:68px}
 .sidebar-logo{display:flex;align-items:center;gap:10px;padding:18px 14px;border-bottom:1px solid var(--border)}
 .sidebar-logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#0ea5e9);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .sidebar-logo-text{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:#fff;white-space:nowrap;overflow:hidden}
@@ -74,7 +84,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-logout:hover{color:#fca5a5;background:rgba(239,68,68,.1)}
 
 /* ── MAIN ── */
-.main{flex:1;overflow-y:auto;padding:32px;padding-top:64px}
+.main{flex:1;overflow-y:auto;padding:32px}
 .page{display:none}
 .page.active{display:block}
 .page-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:4px}
@@ -159,6 +169,8 @@ tr:last-child td{border-bottom:none}
 
 @media(max-width:640px){
   .main{padding:16px}
+  .sidebar{width:68px}
+  .sidebar-logo-text,.role-badge span,.nav-item span,.user-info,.sidebar.collapsed .nav-item span{display:none}
 }
 
 /* ── MODAL PDF ── */
@@ -187,7 +199,10 @@ tr:last-child td{border-bottom:none}
 <div id="login-page">
   <div class="login-card">
     <div class="login-logo">
-      <img src="https://raw.githubusercontent.com/aiidentitystudio/Website/2dfebfd3fdeddf9291544284fbe93181f8077417/logo.png" alt="Logo" style="height:95px;object-fit:contain"/>
+      <div class="login-logo-icon">
+        <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <span class="login-logo-text">RekapAdmin</span>
     </div>
     <h1 class="login-title">Selamat Datang</h1>
     <p class="login-sub">Masuk untuk mengakses panel manajemen</p>
@@ -211,13 +226,13 @@ tr:last-child td{border-bottom:none}
 <!-- APP -->
 <div id="app">
   <div class="layout">
-    <!-- TOGGLE BUTTON -->
-    <button id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Menu" style="position:fixed;top:14px;right:14px;z-index:200;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;color:var(--muted);" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-logo">
-        <img src="https://raw.githubusercontent.com/aiidentitystudio/Website/2dfebfd3fdeddf9291544284fbe93181f8077417/logo.png" alt="Logo" style="height:36px;object-fit:contain"/>
-        <span class="sidebar-logo-text">NURRAHMA</span>
+        <div class="sidebar-logo-icon">
+          <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <span class="sidebar-logo-text">RekapAdmin</span>
       </div>
       <div class="role-badge" id="role-badge">
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -285,7 +300,6 @@ tr:last-child td{border-bottom:none}
             <input class="search-input" id="doc-search" placeholder="Cari dokumen..." oninput="renderDocs()"/>
           </div>
           <button class="filter-btn active" onclick="setDocFilter('Semua',this)">Semua</button>
-          <button class="filter-btn" onclick="setDocFilter('Nota',this)">Nota</button>
           <button class="filter-btn" onclick="setDocFilter('Kontrak',this)">Kontrak</button>
           <button class="filter-btn" onclick="setDocFilter('Invoice',this)">Invoice</button>
           <button class="filter-btn" onclick="setDocFilter('Laporan',this)">Laporan</button>
@@ -351,7 +365,7 @@ const CSV = {
   dokumen:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1891807759&single=true&output=csv',
   users:       'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=518898558&single=true&output=csv',
 };
-const LOOKER_URL = 'https://datastudio.google.com/embed/reporting/006b75a2-edbe-42bc-88f8-45dfbc7f435a/page/JjBzF'; // Isi URL embed Looker Studio di sini
+const LOOKER_URL = ''; // Isi URL embed Looker Studio di sini
 
 // Password tetap di kode (tidak disimpan di spreadsheet)
 const PASSWORDS = { admin:'admin123', mitra01:'mitra123', mitra02:'mitra456' };
@@ -420,7 +434,6 @@ async function doLogin(){
     const correctPass = PASSWORDS[username];
     if(user && correctPass && correctPass===password){
       currentUser = {...user};
-      localStorage.setItem('session', JSON.stringify({...user, page:'dashboard'}));
       document.getElementById('login-page').style.display='none';
       document.getElementById('app').style.display='block';
       initApp();
@@ -437,7 +450,6 @@ async function doLogin(){
 
 function doLogout(){
   currentUser=null;
-  localStorage.removeItem('session');
   document.getElementById('app').style.display='none';
   document.getElementById('login-page').style.display='flex';
   document.getElementById('inp-user').value='';
@@ -501,8 +513,6 @@ function navTo(key, el){
   const pg = document.getElementById('page-'+key);
   if(pg) pg.classList.add('active');
   activePage = key;
-  const _s = JSON.parse(localStorage.getItem('session')||'{}');
-  if(_s.username){ _s.page = key; localStorage.setItem('session', JSON.stringify(_s)); }
   renderCurrentPage();
 }
 
@@ -755,26 +765,14 @@ function closeModalOverlay(e){
 document.addEventListener('keydown', e => {
   if(e.key === 'Escape') closeModal();
 });
-// ── SIDEBAR TOGGLE ────────────────────────────────────────────────────────────
-function toggleSidebar(){
-  const sb = document.getElementById('sidebar');
-  sb.classList.toggle('collapsed');
+// ── SERVICE WORKER (PWA) ──────────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('/Website/sw.js')
+      .then(r => console.log('SW registered:', r.scope))
+      .catch(e => console.log('SW error:', e));
+  });
 }
-
-// Restore session saat refresh
-(function(){
-  const s = JSON.parse(localStorage.getItem('session')||'null');
-  if(s && s.username && PASSWORDS[s.username]){
-    currentUser = s;
-    document.getElementById('login-page').style.display='none';
-    document.getElementById('app').style.display='block';
-    initApp();
-    loadAll().then(()=>{
-      const activeBtn = document.querySelector('.nav-item.active');
-      navTo(s.page||'dashboard', activeBtn);
-    });
-  }
-})();
 </script>
 </body>
 </html>
