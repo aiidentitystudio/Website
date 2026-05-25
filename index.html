@@ -167,6 +167,10 @@ tr:last-child td{border-bottom:none}
 .btn-refresh{padding:8px 14px;border-radius:9px;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);color:#a5b4fc;font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;display:flex;align-items:center;gap:6px}
 .btn-refresh:hover{background:rgba(99,102,241,.25)}
 
+/* NOTIF OFFLINE */
+.offline-bar{position:fixed;top:0;left:0;right:0;z-index:9999;padding:10px 16px;background:rgba(245,158,11,.95);color:#1c1400;font-size:13px;font-weight:600;text-align:center;display:none;align-items:center;justify-content:center;gap:8px}
+.offline-bar.show{display:flex}
+
 @media(max-width:640px){
   .main{padding:16px}
 }
@@ -190,6 +194,10 @@ tr:last-child td{border-bottom:none}
 </style>
 </head>
 <body>
+<div class="offline-bar" id="offline-bar">
+  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
+  Tidak ada koneksi internet — data tidak dapat diperbarui
+</div>
 
 <div class="glow-wrap"><div class="glow glow-a"></div><div class="glow glow-b"></div></div>
 
@@ -424,6 +432,12 @@ async function doLogin(){
   btn.disabled=true; btn.textContent='Memverifikasi...';
 
   try{
+    if(!navigator.onLine){
+      err.textContent='Tidak ada koneksi internet. Periksa jaringan Anda.';
+      err.style.display='block';
+      btn.disabled=false; btn.textContent='Masuk';
+      return;
+    }
     // Ambil users dari sheet
     const users = await fetchCSV(CSV.users);
     const user = users.find(u=>u.username===username);
@@ -436,6 +450,7 @@ async function doLogin(){
       initApp();
       await loadAll();
     } else {
+      err.textContent='Username atau password salah.';
       err.style.display='block';
     }
   } catch(e){
@@ -793,6 +808,15 @@ if('serviceWorker' in navigator){
       .catch(e => console.log('SW error:', e));
   });
 }
+// ── OFFLINE DETECTION ────────────────────────────────────────────────────────
+function updateOnlineStatus(){
+  const bar = document.getElementById('offline-bar');
+  if(!navigator.onLine){ bar.classList.add('show'); }
+  else { bar.classList.remove('show'); }
+}
+window.addEventListener('online',  updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+updateOnlineStatus();
 </script>
 </body>
 </html>
