@@ -1,4 +1,4 @@
-const CACHE = 'nurrahma-v4';
+const CACHE = 'nurrahma-v5';
 const ASSETS = [
   '/Website/index.html',
   '/Website/manifest.json',
