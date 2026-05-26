@@ -702,13 +702,21 @@ function renderMitra(){
   const rows = DATA.mitra;
   document.getElementById('mitra-sub').textContent = `${rows.length} mitra terdaftar`;
   if(!rows.length){ document.getElementById('mitra-body').innerHTML='<div class="loading"><div class="spinner"></div> Memuat...</div>'; return; }
-  document.getElementById('mitra-body').innerHTML = `
-    <div class="table-wrap"><table>
+
+  // Pisahkan berdasarkan kolom "tipe" (Buyer / Supplier); fallback: semua masuk Buyer
+  const buyers    = rows.filter(m => (m.tipe||'').toLowerCase() === 'buyer');
+  const suppliers = rows.filter(m => (m.tipe||'').toLowerCase() === 'supplier');
+  // Jika kolom tipe belum ada, tampilkan semua di kedua section dengan keterangan
+  const hasTipe = rows.some(m => m.tipe && m.tipe.trim() !== '');
+
+  function buildTable(list, tipe){
+    if(!list.length) return `<div class="empty">Belum ada mitra ${tipe}</div>`;
+    return `<div class="table-wrap"><table>
       <thead><tr>
         <th>ID</th><th>Nama Mitra</th><th>Kontak</th><th>Email</th><th>Telepon</th><th>Bergabung</th><th>Status</th>
       </tr></thead>
       <tbody>
-        ${rows.map(m=>{
+        ${list.map(m=>{
           const trxCount = DATA.transaksi.filter(t=>t.mitraId===m.id).length;
           const docCount = DATA.dokumen.filter(d=>d.mitraId===m.id).length;
           return `<tr>
@@ -723,6 +731,31 @@ function renderMitra(){
         }).join('')}
       </tbody>
     </table></div>`;
+  }
+
+  const buyerList    = hasTipe ? buyers    : rows;
+  const supplierList = hasTipe ? suppliers : [];
+
+  document.getElementById('mitra-body').innerHTML = `
+    <!-- Mitra Buyer -->
+    <div style="margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)">
+        <div style="width:8px;height:8px;border-radius:50%;background:#0ea5e9;flex-shrink:0"></div>
+        <span style="font-size:13px;font-weight:600;color:#fff">Mitra Buyer</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:4px">${buyerList.length} mitra</span>
+        ${!hasTipe?`<span style="font-size:10px;color:#f59e0b;margin-left:auto">⚠ Kolom "tipe" belum ada di spreadsheet</span>`:''}
+      </div>
+      ${buildTable(buyerList, 'Buyer')}
+    </div>
+    <!-- Mitra Supplier -->
+    <div style="border-top:2px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)">
+        <div style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0"></div>
+        <span style="font-size:13px;font-weight:600;color:#fff">Mitra Supplier</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:4px">${supplierList.length} mitra</span>
+      </div>
+      ${buildTable(supplierList, 'Supplier')}
+    </div>`;
 }
 
 // ── KONTROL DATA ──────────────────────────────────────────────────────────────
