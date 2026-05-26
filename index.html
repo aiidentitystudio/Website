@@ -315,9 +315,7 @@ tr:last-child td{border-bottom:none}
       <div class="page" id="page-partners">
         <div class="page-title">Data Mitra</div>
         <div class="page-sub" id="mitra-sub"></div>
-        <div class="card">
-          <div id="mitra-body"><div class="loading"><div class="spinner"></div> Memuat...</div></div>
-        </div>
+        <div id="mitra-body"><div class="loading"><div class="spinner"></div> Memuat...</div></div>
       </div>
 
       <!-- KONTROL DATA (admin only) -->
@@ -736,26 +734,29 @@ function renderMitra(){
   const buyerList    = hasTipe ? buyers    : rows;
   const supplierList = hasTipe ? suppliers : [];
 
-  document.getElementById('mitra-body').innerHTML = `
-    <!-- Mitra Buyer -->
-    <div style="margin-bottom:24px">
-      <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)">
-        <div style="width:8px;height:8px;border-radius:50%;background:#0ea5e9;flex-shrink:0"></div>
-        <span style="font-size:13px;font-weight:600;color:#fff">Mitra Buyer</span>
-        <span style="font-size:11px;color:var(--muted);margin-left:4px">${buyerList.length} mitra</span>
-        ${!hasTipe?`<span style="font-size:10px;color:#f59e0b;margin-left:auto">⚠ Kolom "tipe" belum ada di spreadsheet</span>`:''}
-      </div>
-      ${buildTable(buyerList, 'Buyer')}
-    </div>
-    <!-- Mitra Supplier -->
-    <div style="border-top:2px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)">
-        <div style="width:8px;height:8px;border-radius:50%;background:#10b981;flex-shrink:0"></div>
-        <span style="font-size:13px;font-weight:600;color:#fff">Mitra Supplier</span>
-        <span style="font-size:11px;color:var(--muted);margin-left:4px">${supplierList.length} mitra</span>
-      </div>
-      ${buildTable(supplierList, 'Supplier')}
-    </div>`;
+  const warnTipe = !hasTipe ? '<span style="font-size:10px;color:#f59e0b">⚠ Isi kolom tipe di spreadsheet: Buyer / Supplier</span>' : '';
+
+  const buyerCard = '<div class="card" style="margin-bottom:20px">'
+    + '<div class="card-header">'
+    + '<div style="display:flex;align-items:center;gap:8px">'
+    + '<div style="width:10px;height:10px;border-radius:50%;background:#0ea5e9"></div>'
+    + '<span class="card-title">Mitra Buyer</span>'
+    + '<span class="card-sub">&nbsp;' + buyerList.length + ' mitra</span>'
+    + '</div>' + warnTipe + '</div>'
+    + buildTable(buyerList, 'Buyer')
+    + '</div>';
+
+  const supplierCard = '<div class="card">'
+    + '<div class="card-header">'
+    + '<div style="display:flex;align-items:center;gap:8px">'
+    + '<div style="width:10px;height:10px;border-radius:50%;background:#10b981"></div>'
+    + '<span class="card-title">Mitra Supplier</span>'
+    + '<span class="card-sub">&nbsp;' + supplierList.length + ' mitra</span>'
+    + '</div></div>'
+    + buildTable(supplierList, 'Supplier')
+    + '</div>';
+
+  document.getElementById('mitra-body').innerHTML = buyerCard + supplierCard;
 }
 
 // ── KONTROL DATA ──────────────────────────────────────────────────────────────
