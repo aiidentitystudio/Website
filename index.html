@@ -454,8 +454,12 @@ tr:last-child td{border-bottom:none}
             </select>
           </div>
           <div style="margin-bottom:14px">
+            <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Nama (opsional)</label>
+            <input id="upload-nama" type="text" placeholder="Contoh: Invoice Budi Januari 2025" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:#fff;font-size:13px;outline:none;box-sizing:border-box"/>
+          </div>
+          <div style="margin-bottom:14px">
             <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">Keterangan (opsional)</label>
-            <input id="upload-ket" type="text" placeholder="Contoh: Invoice Januari 2025" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:#fff;font-size:13px;outline:none;box-sizing:border-box"/>
+            <input id="upload-ket" type="text" placeholder="Contoh: Pembayaran lunas minggu ini" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:#fff;font-size:13px;outline:none;box-sizing:border-box"/>
           </div>
           <div style="margin-bottom:20px">
             <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">File Dokumen</label>
@@ -544,7 +548,7 @@ tr:last-child td{border-bottom:none}
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 // Ganti dengan URL Apps Script Anda setelah deploy
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxkcavc7sV8qTWJKrLFlkAAwi5G12wRJdngxGW5rs_AzhJj6KPkwgQJizs_e44BXhQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby2IsA0qxbqsLxCqHftie8JfkQwILFerH-N-OUo5SnqQjA_oKxBngQ_P2MkUdBjmQ/exec';
 
 const CSV = {
   mitra:            'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1359230789&single=true&output=csv',
@@ -1526,6 +1530,14 @@ function openUploadModalWithDoc(d){
 
 function closeUploadModal(){
   document.getElementById('modal-upload').style.display='none';
+  document.getElementById('upload-nama').value = '';
+  document.getElementById('upload-ket').value  = '';
+  document.getElementById('drop-label').innerHTML = 'Belum ada file dipilih<br><span style="font-size:11px">PDF, Word, Excel, Gambar, dll</span>';
+  document.getElementById('upload-file').value   = '';
+  document.getElementById('upload-camera').value = '';
+  document.getElementById('upload-progress').style.display = 'none';
+  document.getElementById('upload-error').style.display    = 'none';
+  document.getElementById('upload-bar').style.width = '0%';
 }
 
 function onFileSelected(input){
@@ -1541,6 +1553,7 @@ function onFileSelected(input){
 async function doUpload(){
   const mitraId  = document.getElementById('upload-mitra').value;
   const jenis    = document.getElementById('upload-jenis').value;
+  const nama     = document.getElementById('upload-nama').value.trim();
   const ket      = document.getElementById('upload-ket').value;
   const fileInput  = document.getElementById('upload-file');
   const cameraInput= document.getElementById('upload-camera');
@@ -1622,13 +1635,14 @@ async function doUpload(){
     document.getElementById('upload-bar').style.width = '60%';
     // Kirim sebagai URL-encoded agar Apps Script bisa baca via no-cors
     const params = new URLSearchParams();
-    params.append('mitraId',   mitraId);
-    params.append('mitraNama', mitraNama);
-    params.append('jenis',     jenis);
-    params.append('keterangan',ket);
-    params.append('fileName',  finalName);
-    params.append('mimeType',  file.type);
-    params.append('fileData',  base64);
+    params.append('mitraId',    mitraId);
+    params.append('mitraNama',  mitraNama);
+    params.append('jenis',      jenis);
+    params.append('docNamaBaru',nama);
+    params.append('keterangan', ket);
+    params.append('fileName',   finalName);
+    params.append('mimeType',   file.type);
+    params.append('fileData',   base64);
     params.append('docNama',    docNama);
     params.append('oldFileId',  oldFileId);
     params.append('docTanggal', document.getElementById('modal-upload').dataset.docTanggal || '');
