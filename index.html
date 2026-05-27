@@ -952,8 +952,9 @@ function _resetUploadModal(){
   document.getElementById('upload-file').value='';
   document.getElementById('btn-upload').disabled=false;
   document.getElementById('upload-ket').value='';
-  document.getElementById('modal-upload').dataset.docNama = '';
-  document.getElementById('modal-upload').dataset.oldUrl  = '';
+  document.getElementById('modal-upload').dataset.docNama    = '';
+  document.getElementById('modal-upload').dataset.oldUrl     = '';
+  document.getElementById('modal-upload').dataset.docTanggal = '';
 }
 
 function openUploadModal(){
@@ -983,8 +984,9 @@ function openUploadModalWithDoc(d){
   const jenisEl = document.getElementById('upload-jenis');
   if(d.tipe) jenisEl.value = d.tipe;
   document.getElementById('upload-ket').value = d.nama || '';
-  document.getElementById('modal-upload').dataset.docNama = d.nama || '';
-  document.getElementById('modal-upload').dataset.oldUrl  = d.url  || '';
+  document.getElementById('modal-upload').dataset.docNama    = d.nama    || '';
+  document.getElementById('modal-upload').dataset.oldUrl     = d.url     || '';
+  document.getElementById('modal-upload').dataset.docTanggal = d.tanggal || '';
   document.getElementById('modal-upload').style.display='flex';
 }
 
@@ -1017,7 +1019,9 @@ async function doUpload(){
   const mitraNama = (DATA.mitra.find(m=>m.id===mitraId)||{}).nama || '';
   const ext = file.name.includes('.') ? file.name.split('.').pop() : '';
   const baseName = (docNama || ket || file.name.replace(/\.[^.]+$/,'')).replace(/[^a-zA-Z0-9 _\-]/g,'');
-  const today = new Date().toISOString().slice(0,10);
+  // Gunakan tanggal dari dokumen jika ada, fallback ke hari ini
+  const docTanggal = (modalEl.dataset.docTanggal || '').trim();
+  const today = docTanggal || new Date().toISOString().slice(0,10);
   const finalName = baseName + '_' + today + (ext ? '.' + ext : '');
 
   let oldFileId = '';
