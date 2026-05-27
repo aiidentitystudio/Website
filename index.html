@@ -321,12 +321,25 @@ tr:last-child td{border-bottom:none}
               <div class="modal-meta" id="trx-modal-sub"></div>
             </div>
             <div class="modal-actions">
+              <button onclick="toggleTrxDokumen()" id="btn-trx-dokumen" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+                <span id="btn-trx-dokumen-label">Dokumen</span>
+              </button>
+              <button onclick="uploadDariTrx()" id="btn-trx-upload" style="display:none;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:none;background:#0ea5e9;color:#fff;font-size:11px;font-weight:600;cursor:pointer">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="16,16 12,12 8,16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>
+                Upload
+              </button>
               <button class="btn-close-modal" onclick="closeTrxModal()">
                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
           </div>
           <div id="trx-modal-body" style="max-height:75vh;overflow-y:auto"></div>
+          <!-- Panel Dokumen Mitra -->
+          <div id="trx-dokumen-panel" style="display:none;border-top:1px solid var(--border);max-height:300px;overflow-y:auto">
+            <div style="padding:14px 20px 8px;font-size:12px;font-weight:600;color:#fff">Dokumen Mitra</div>
+            <div id="trx-dokumen-list" style="padding:0 16px 16px"></div>
+          </div>
         </div>
       </div>
 
@@ -869,7 +882,77 @@ function openTrxModal(t){
 
   document.getElementById('trx-modal-title').textContent = t.id;
   document.getElementById('trx-modal-sub').textContent = t.deskripsi;
+
+  // Simpan mitraId aktif untuk keperluan dokumen & upload
+  document.getElementById('modal-trx').dataset.mitraId   = t.mitraId || '';
+  document.getElementById('modal-trx').dataset.mitraNama = t.mitra   || '';
+
+  // Tampilkan tombol hanya untuk admin
+  const showBtn = canUpload();
+  const btnDok = document.getElementById('btn-trx-dokumen');
+  const btnUp  = document.getElementById('btn-trx-upload');
+  btnDok.style.display = 'inline-flex';
+  btnUp.style.display  = showBtn ? 'inline-flex' : 'none';
+
+  // Reset panel dokumen
+  document.getElementById('trx-dokumen-panel').style.display = 'none';
+  document.getElementById('btn-trx-dokumen-label').textContent = 'Dokumen';
+
   document.getElementById('modal-trx').classList.add('open');
+}
+
+let _trxDokumenOpen = false;
+function toggleTrxDokumen(){
+  _trxDokumenOpen = !_trxDokumenOpen;
+  const panel  = document.getElementById('trx-dokumen-panel');
+  const label  = document.getElementById('btn-trx-dokumen-label');
+  const mitraId = document.getElementById('modal-trx').dataset.mitraId;
+
+  if(_trxDokumenOpen){
+    panel.style.display = 'block';
+    label.textContent   = 'Sembunyikan';
+
+    // Tampilkan dokumen milik mitra ini
+    const docs = DATA.dokumen.filter(d=>d.mitraId===mitraId);
+    const listEl = document.getElementById('trx-dokumen-list');
+
+    if(!docs.length){
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:12px;padding:8px 4px">Belum ada dokumen untuk mitra ini</div>';
+      return;
+    }
+
+    listEl.innerHTML = docs.map(d=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border-radius:8px;margin-bottom:8px;cursor:pointer" onclick="openDocFromTrx(${JSON.stringify(d).replace(/"/g,'&quot;')})">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(99,102,241,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="14" height="14" fill="none" stroke="#a5b4fc" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;color:#fff;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.nama}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${d.tipe||''} · ${fmtDate(d.tanggal)}</div>
+        </div>
+        <div>${badge(d.status||'Aktif')}</div>
+      </div>`).join('');
+  } else {
+    panel.style.display = 'none';
+    label.textContent   = 'Dokumen';
+  }
+}
+
+function openDocFromTrx(d){
+  closeTrxModal();
+  setTimeout(()=> openDocModal(d), 150);
+}
+
+function uploadDariTrx(){
+  const mitraId   = document.getElementById('modal-trx').dataset.mitraId;
+  const mitraNama = document.getElementById('modal-trx').dataset.mitraNama;
+  closeTrxModal();
+  setTimeout(()=>{
+    openUploadModal();
+    // Preset mitra
+    const sel = document.getElementById('upload-mitra');
+    if(sel) sel.value = mitraId;
+  }, 150);
 }
 
 function closeTrxModal(){
