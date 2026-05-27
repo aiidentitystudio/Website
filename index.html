@@ -938,6 +938,12 @@ function updateOnlineStatus(){
 window.addEventListener('online',  updateOnlineStatus);
 window.addEventListener('offline', updateOnlineStatus);
 updateOnlineStatus();
+
+// Tampilkan tombol upload hanya untuk admin
+function toggleUploadBtn(){
+  const btn = document.getElementById('btn-show-upload');
+  if(btn) btn.style.display = (currentUser && currentUser.role==='admin') ? 'inline-block' : 'none';
+}
 </script>
 </body>
 </html>
