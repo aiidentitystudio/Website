@@ -1068,14 +1068,18 @@ function openDocFromTrx(d){
 }
 
 function uploadDariTrx(){
-  const mitraId   = document.getElementById('modal-trx').dataset.mitraId;
-  const mitraNama = document.getElementById('modal-trx').dataset.mitraNama;
+  const mitraId    = document.getElementById('modal-trx').dataset.mitraId;
+  const mitraNama  = document.getElementById('modal-trx').dataset.mitraNama;
+  const trxTanggal = document.getElementById('modal-trx').dataset.trxTanggal;
   closeTrxModal();
   setTimeout(()=>{
     openUploadModal();
-    // Preset mitra
     const sel = document.getElementById('upload-mitra');
     if(sel) sel.value = mitraId;
+    // Set tanggal dokumen sesuai tanggal transaksi
+    if(trxTanggal){
+      document.getElementById('modal-upload').dataset.docTanggal = trxTanggal;
+    }
   }, 150);
 }
 
@@ -1479,6 +1483,7 @@ function _resetUploadModal(){
   document.getElementById('upload-progress').style.display='none';
   document.getElementById('drop-label').innerHTML = 'Klik atau drag file ke sini<br><span style="font-size:11px">PDF, Word, Excel, Gambar, dll</span>';
   document.getElementById('upload-file').value='';
+  document.getElementById('upload-camera').value='';
   document.getElementById('btn-upload').disabled=false;
   document.getElementById('upload-ket').value='';
   document.getElementById('modal-upload').dataset.docNama    = '';
@@ -1537,17 +1542,23 @@ async function doUpload(){
   const mitraId  = document.getElementById('upload-mitra').value;
   const jenis    = document.getElementById('upload-jenis').value;
   const ket      = document.getElementById('upload-ket').value;
-  const fileInput= document.getElementById('upload-file');
-  const errEl    = document.getElementById('upload-error');
-  const modalEl  = document.getElementById('modal-upload');
-  const docNama  = modalEl.dataset.docNama || '';
-  const oldUrl   = modalEl.dataset.oldUrl  || '';
+  const fileInput  = document.getElementById('upload-file');
+  const cameraInput= document.getElementById('upload-camera');
+  const errEl      = document.getElementById('upload-error');
+  const modalEl    = document.getElementById('modal-upload');
+  const docNama    = modalEl.dataset.docNama || '';
+  const oldUrl     = modalEl.dataset.oldUrl  || '';
   errEl.style.display='none';
 
-  if(!mitraId){ errEl.textContent='Pilih mitra terlebih dahulu.'; errEl.style.display='block'; return; }
-  if(!fileInput.files || !fileInput.files[0]){ errEl.textContent='Pilih file yang akan diupload.'; errEl.style.display='block'; return; }
+  // Ambil file dari input manapun yang terakhir digunakan
+  const file = (fileInput.files && fileInput.files[0])
+    ? fileInput.files[0]
+    : (cameraInput.files && cameraInput.files[0])
+    ? cameraInput.files[0]
+    : null;
 
-  const file = fileInput._selectedFile || document.getElementById('upload-camera')._selectedFile || fileInput.files[0];
+  if(!mitraId){ errEl.textContent='Pilih mitra terlebih dahulu.'; errEl.style.display='block'; return; }
+  if(!file){ errEl.textContent='Pilih file yang akan diupload.'; errEl.style.display='block'; return; }
   const mitraNama = (DATA.mitra.find(m=>m.id===mitraId)||{}).nama || '';
   const ext = file.name.includes('.') ? file.name.split('.').pop() : '';
   const baseName = (docNama || ket || file.name.replace(/\.[^.]+$/,'')).replace(/[^a-zA-Z0-9 _\-]/g,'');
