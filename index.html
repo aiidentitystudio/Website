@@ -312,6 +312,24 @@ tr:last-child td{border-bottom:none}
         <div id="doc-body"></div>
       </div>
 
+      <!-- MODAL DETAIL TRANSAKSI -->
+      <div class="modal-overlay" id="modal-trx" onclick="if(event.target.id==='modal-trx') closeTrxModal()">
+        <div class="modal-box" style="max-width:680px;width:95%">
+          <div class="modal-top">
+            <div>
+              <div class="modal-title" id="trx-modal-title"></div>
+              <div class="modal-meta" id="trx-modal-sub"></div>
+            </div>
+            <div class="modal-actions">
+              <button class="btn-close-modal" onclick="closeTrxModal()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+          <div id="trx-modal-body" style="max-height:75vh;overflow-y:auto"></div>
+        </div>
+      </div>
+
       <!-- MODAL UPLOAD DOKUMEN -->
       <div id="modal-upload" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:none;align-items:center;justify-content:center">
         <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;width:90%;max-width:480px;position:relative">
@@ -416,19 +434,20 @@ tr:last-child td{border-bottom:none}
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxLfXU7vIWruBv-jskG2Wi2HPvCm5SgG2rMozy-Muicy-AGwSB7uzZnC2tQ35Tpa-pl/exec';
 
 const CSV = {
-  mitra:       'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1359230789&single=true&output=csv',
-  transaksi:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1160335916&single=true&output=csv',
-  dokumen:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1891807759&single=true&output=csv',
-  users:       'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=518898558&single=true&output=csv',
+  mitra:            'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1359230789&single=true&output=csv',
+  transaksi:        'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1160335916&single=true&output=csv',
+  transaksi_detail: 'GANTI_DENGAN_GID_TRANSAKSI_DETAIL',
+  dokumen:          'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1891807759&single=true&output=csv',
+  users:            'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=518898558&single=true&output=csv',
 };
 const LOOKER_URL = 'https://datastudio.google.com/embed/reporting/006b75a2-edbe-42bc-88f8-45dfbc7f435a/page/JjBzF'; // Isi URL embed Looker Studio di sini
 
 // Password tetap di kode (tidak disimpan di spreadsheet)
-const PASSWORDS = { admin:'admin123', owner:'owner123', mitra01:'mitra123' };
+const PASSWORDS = { admin:'admin123', mitra01:'mitra123', mitra02:'mitra456' };
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 let currentUser = null;
-let DATA = { mitra:[], transaksi:[], dokumen:[], users:[] };
+let DATA = { mitra:[], transaksi:[], transaksi_detail:[], dokumen:[], users:[] };
 let trxFilter = 'Semua';
 let docFilter = 'Semua';
 
@@ -468,13 +487,14 @@ async function fetchCSV(url){
 
 async function loadAll(){
   try{
-    const [mitra,transaksi,dokumen,users] = await Promise.all([
+    const [mitra,transaksi,transaksi_detail,dokumen,users] = await Promise.all([
       fetchCSV(CSV.mitra),
       fetchCSV(CSV.transaksi),
+      fetchCSV(CSV.transaksi_detail),
       fetchCSV(CSV.dokumen),
       fetchCSV(CSV.users),
     ]);
-    DATA = {mitra,transaksi,dokumen,users};
+    DATA = {mitra,transaksi,transaksi_detail,dokumen,users};
     renderCurrentPage();
   } catch(e){
     console.error('Gagal memuat data:',e);
@@ -703,13 +723,19 @@ function renderTrx(){
   document.getElementById('trx-body').innerHTML = `
     <div class="table-wrap"><table>
       <thead><tr>
-        <th>ID</th>${isAdmin?'<th>Mitra</th>':''}
-        <th>Deskripsi</th><th>Tanggal</th><th>Jumlah</th><th>Status</th>
+        <th>ID</th>
+        ${isAdmin?'<th>Mitra</th>':''}
+        <th>Tipe</th>
+        <th>Deskripsi</th>
+        <th>Tanggal</th>
+        <th>Jumlah</th>
+        <th>Status</th>
       </tr></thead>
       <tbody>
-        ${rows.map(t=>`<tr>
+        ${rows.map(t=>`<tr style="cursor:pointer" onclick="openTrxModal(${JSON.stringify(t).replace(/"/g,'&quot;')})">
           <td class="mono">${t.id}</td>
           ${isAdmin?`<td>${t.mitra||t.mitraId}</td>`:''}
+          <td>${t.tipe ? badge(t.tipe) : '<span style="color:var(--muted)">-</span>'}</td>
           <td>${t.deskripsi}</td>
           <td style="color:var(--muted)">${fmtDate(t.tanggal)}</td>
           <td style="color:#fff;font-weight:600">${fmt(t.jumlah)}</td>
@@ -717,6 +743,96 @@ function renderTrx(){
         </tr>`).join('')}
       </tbody>
     </table></div>`;
+}
+
+// ── MODAL DETAIL TRANSAKSI ────────────────────────────────────────────────────
+function openTrxModal(t){
+  const details = DATA.transaksi_detail.filter(d=>d.trxId===t.id);
+  const isAdmin = isPrivileged();
+
+  const totalOngkos = details.reduce((s,d)=>s+Number(d.ongkos||0),0);
+  const totalSubtotal = details.length ? details.reduce((s,d)=>s+Number(d.subtotal||0),0) : Number(t.jumlah||0);
+  const totalJumlah = totalSubtotal + totalOngkos;
+
+  const detailRows = details.length ? details.map(d=>`
+    <tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:8px 10px">${d.detail||'-'}</td>
+      <td style="padding:8px 10px;color:var(--muted)">${d.subdetail||'-'}</td>
+      <td style="padding:8px 10px;text-align:right">${Number(d.qty||0).toLocaleString('id-ID')}</td>
+      <td style="padding:8px 10px">${d.satuan||''}</td>
+      <td style="padding:8px 10px;text-align:right">${fmt(d.harga)}</td>
+      <td style="padding:8px 10px;text-align:right;color:#fff;font-weight:600">${fmt(d.subtotal)}</td>
+      <td style="padding:8px 10px;text-align:right;color:var(--muted)">${fmt(d.ongkos)}</td>
+      <td style="padding:8px 10px;color:var(--muted)">${d.supir||'-'}</td>
+    </tr>`).join('') :
+    `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">Belum ada detail barang</td></tr>`;
+
+  document.getElementById('trx-modal-body').innerHTML = `
+    <div style="padding:20px 24px">
+      <!-- Header info -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div style="background:var(--surface);border-radius:10px;padding:14px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Mitra</div>
+          <div style="font-size:13px;color:#fff;font-weight:600">${t.mitra||t.mitraId}</div>
+        </div>
+        <div style="background:var(--surface);border-radius:10px;padding:14px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Tipe</div>
+          <div>${t.tipe ? badge(t.tipe) : '<span style="color:var(--muted)">-</span>'}</div>
+        </div>
+        <div style="background:var(--surface);border-radius:10px;padding:14px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Tanggal</div>
+          <div style="font-size:13px;color:#fff">${fmtDate(t.tanggal)}</div>
+        </div>
+        <div style="background:var(--surface);border-radius:10px;padding:14px">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Status</div>
+          <div>${badge(t.status)}</div>
+        </div>
+      </div>
+      <!-- Deskripsi -->
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px">${t.deskripsi||''}</div>
+      <!-- Tabel detail barang -->
+      <div style="font-size:12px;font-weight:600;color:#fff;margin-bottom:10px">Detail Barang</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border)">
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:500">Barang</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:500">Sub Detail</th>
+              <th style="text-align:right;padding:8px 10px;color:var(--muted);font-weight:500">Qty</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:500">Satuan</th>
+              <th style="text-align:right;padding:8px 10px;color:var(--muted);font-weight:500">Harga</th>
+              <th style="text-align:right;padding:8px 10px;color:var(--muted);font-weight:500">Subtotal</th>
+              <th style="text-align:right;padding:8px 10px;color:var(--muted);font-weight:500">Ongkos</th>
+              <th style="text-align:left;padding:8px 10px;color:var(--muted);font-weight:500">Supir</th>
+            </tr>
+          </thead>
+          <tbody>${detailRows}</tbody>
+        </table>
+      </div>
+      <!-- Total -->
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="display:flex;justify-content:flex-end;gap:20px;margin-bottom:6px">
+          <span style="font-size:12px;color:var(--muted)">Subtotal</span>
+          <span style="font-size:12px;color:#fff;min-width:140px;text-align:right">${fmt(totalSubtotal)}</span>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:20px;margin-bottom:10px">
+          <span style="font-size:12px;color:var(--muted)">Total Ongkos</span>
+          <span style="font-size:12px;color:#fff;min-width:140px;text-align:right">${fmt(totalOngkos)}</span>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:20px;padding-top:10px;border-top:1px solid var(--border)">
+          <span style="font-size:13px;font-weight:600;color:var(--muted)">Total</span>
+          <span style="font-size:16px;font-weight:700;color:#fff;min-width:140px;text-align:right">${fmt(totalJumlah)}</span>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('trx-modal-title').textContent = t.id;
+  document.getElementById('trx-modal-sub').textContent = t.deskripsi;
+  document.getElementById('modal-trx').classList.add('open');
+}
+
+function closeTrxModal(){
+  document.getElementById('modal-trx').classList.remove('open');
 }
 
 // ── DOKUMEN ───────────────────────────────────────────────────────────────────
