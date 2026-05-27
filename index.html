@@ -650,7 +650,7 @@ function renderDashboard(){
   const trxBuyer    = trx.filter(t=>(t.tipe||'').toLowerCase()==='buyer');
   const totalPengeluaran = trxSupplier.reduce((a,b)=>a+(Number(b.jumlah)||0),0); // beli dari supplier = pengeluaran
   const totalPendapatan  = trxBuyer.reduce((a,b)=>a+(Number(b.jumlah)||0),0);    // jual ke buyer = pendapatan
-  const totalNilai       = totalPengeluaran + totalPendapatan;
+  const totalNilai       = totalPendapatan - totalPengeluaran;
 
   document.getElementById('dash-title').textContent = isAdmin ? (currentUser.role==='owner'?'Dashboard Owner':'Dashboard Admin') : 'Ringkasan Akun';
   document.getElementById('dash-sub').textContent = isAdmin
@@ -667,7 +667,7 @@ function renderDashboard(){
     {label:'Total Mitra',     value:DATA.mitra.length,      sub:'Terdaftar',          icon:'partners',     color:'#6366f1'},
     {label:'Total Transaksi', value:DATA.transaksi.length,  sub:`${lunas.length} lunas`, icon:'transactions', color:'#0ea5e9'},
     {label:'Total Dokumen',   value:DATA.dokumen.length,    sub:'Semua mitra',        icon:'documents',    color:'#f59e0b'},
-    {label:'Total Nilai',     value:fmt(totalNilai),        sub:'Pengeluaran + Pendapatan', icon:'money',   color:'#10b981', extra: true,
+    {label:'Total Nilai',     value:fmt(totalNilai),        sub:'Pendapatan - Pengeluaran', icon:'money',   color:'#10b981', extra: true,
       pengeluaran: totalPengeluaran, pendapatan: totalPendapatan,
       trxSupplier: trxSupplier.length, trxBuyer: trxBuyer.length},
   ] : [
