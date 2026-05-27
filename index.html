@@ -544,7 +544,7 @@ tr:last-child td{border-bottom:none}
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 // Ganti dengan URL Apps Script Anda setelah deploy
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRF9swjqOE_zg38CzfSiU_3GTMa_3Dz0_fiqFp3hlNkFKyAPo2PZMeb7KkDRfrrP-P/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzzzBDyH7vI56EFSMak_E5t2t3DNRESxEFmlTnUnMVSav7MlQihpGi00emt5Q7ZqF9l/exec';
 
 const CSV = {
   mitra:            'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1359230789&single=true&output=csv',
@@ -1450,7 +1450,7 @@ async function submitTambahTrx(){
     params.append('deskripsi', deskripsi);
     params.append('status',    status);
     params.append('jumlah',    jumlah);
-    params.append('detail',    JSON.stringify(detailRows));
+    params.append('detail',    encodeURIComponent(JSON.stringify(detailRows)));
 
     const resp = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
