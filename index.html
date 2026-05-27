@@ -640,11 +640,17 @@ function myDoc(){ return isPrivileged() ? DATA.dokumen : DATA.dokumen.filter(d=>
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function renderDashboard(){
-  const isAdmin = currentUser.role==='admin';
+  const isAdmin = isPrivileged();
   const trx = myTrx();
   const doc = myDoc();
-  const total = trx.reduce((a,b)=>a+(Number(b.jumlah)||0),0);
   const lunas = trx.filter(t=>t.status==='Lunas');
+
+  // Hitung berdasarkan tipe
+  const trxSupplier = trx.filter(t=>(t.tipe||'').toLowerCase()==='supplier');
+  const trxBuyer    = trx.filter(t=>(t.tipe||'').toLowerCase()==='buyer');
+  const totalPengeluaran = trxSupplier.reduce((a,b)=>a+(Number(b.jumlah)||0),0); // beli dari supplier = pengeluaran
+  const totalPendapatan  = trxBuyer.reduce((a,b)=>a+(Number(b.jumlah)||0),0);    // jual ke buyer = pendapatan
+  const totalNilai       = totalPengeluaran + totalPendapatan;
 
   document.getElementById('dash-title').textContent = isAdmin ? (currentUser.role==='owner'?'Dashboard Owner':'Dashboard Admin') : 'Ringkasan Akun';
   document.getElementById('dash-sub').textContent = isAdmin
@@ -652,31 +658,65 @@ function renderDashboard(){
     : currentUser.name;
   document.getElementById('recent-trx-title').textContent = isAdmin?'Transaksi Terbaru (Semua Mitra)':'Transaksi Terbaru Saya';
 
+  const moneyIcon  = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>`;
+  const shieldIcon = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
+  const arrowUpIcon   = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5,12 12,5 19,12"/></svg>`;
+  const arrowDownIcon = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19,12 12,19 5,12"/></svg>`;
+
   const stats = isAdmin ? [
-    {label:'Total Mitra', value:DATA.mitra.length, sub:'Terdaftar', icon:'partners', color:'#6366f1'},
-    {label:'Total Transaksi', value:DATA.transaksi.length, sub:`${lunas.length} lunas`, icon:'transactions', color:'#0ea5e9'},
-    {label:'Total Dokumen', value:DATA.dokumen.length, sub:'Semua mitra', icon:'documents', color:'#f59e0b'},
-    {label:'Total Nilai', value:fmt(total), sub:'Seluruh transaksi', icon:'money', color:'#10b981'},
+    {label:'Total Mitra',     value:DATA.mitra.length,      sub:'Terdaftar',          icon:'partners',     color:'#6366f1'},
+    {label:'Total Transaksi', value:DATA.transaksi.length,  sub:`${lunas.length} lunas`, icon:'transactions', color:'#0ea5e9'},
+    {label:'Total Dokumen',   value:DATA.dokumen.length,    sub:'Semua mitra',        icon:'documents',    color:'#f59e0b'},
+    {label:'Total Nilai',     value:fmt(totalNilai),        sub:'Pengeluaran + Pendapatan', icon:'money',   color:'#10b981', extra: true,
+      pengeluaran: totalPengeluaran, pendapatan: totalPendapatan,
+      trxSupplier: trxSupplier.length, trxBuyer: trxBuyer.length},
   ] : [
-    {label:'Transaksi Saya', value:trx.length, sub:`${lunas.length} lunas`, icon:'transactions', color:'#0ea5e9'},
-    {label:'Dokumen Saya', value:doc.length, sub:'Dokumen aktif', icon:'documents', color:'#f59e0b'},
-    {label:'Total Nilai', value:fmt(total), sub:'Semua transaksi', icon:'money', color:'#10b981'},
-    {label:'Status Akun', value:'Aktif', sub:'Mitra terverifikasi', icon:'shield', color:'#6366f1'},
+    {label:'Transaksi Saya', value:trx.length,   sub:`${lunas.length} lunas`,  icon:'transactions', color:'#0ea5e9'},
+    {label:'Dokumen Saya',   value:doc.length,   sub:'Dokumen aktif',          icon:'documents',    color:'#f59e0b'},
+    {label:'Total Nilai',    value:fmt(totalNilai), sub:'Semua transaksi',     icon:'money',        color:'#10b981'},
+    {label:'Status Akun',    value:'Aktif',      sub:'Mitra terverifikasi',    icon:'shield',       color:'#6366f1'},
   ];
 
-  const moneyIcon = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>`;
-  const shieldIcon = `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
-
-  document.getElementById('stats-grid').innerHTML = stats.map(s=>`
-    <div class="stat-card">
+  document.getElementById('stats-grid').innerHTML = stats.map(s=>{
+    const iconEl = s.icon==='money' ? moneyIcon : s.icon==='shield' ? shieldIcon : svgIcon(s.icon);
+    if(s.extra){
+      // Card Total Nilai dengan breakdown Pengeluaran & Pendapatan
+      return `<div class="stat-card" style="grid-column: span 2">
+        <div class="stat-card-top">
+          <span class="stat-label">${s.label}</span>
+          <div class="stat-icon" style="background:${s.color}22;color:${s.color}">${iconEl}</div>
+        </div>
+        <div class="stat-value">${s.value}</div>
+        <div class="stat-sub" style="margin-bottom:14px">${s.sub}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:12px">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+              <span style="color:#ef4444">${arrowDownIcon}</span>
+              <span style="font-size:11px;color:#ef4444;font-weight:600">Pengeluaran</span>
+            </div>
+            <div style="font-size:13px;font-weight:700;color:#fff">${fmt(s.pengeluaran)}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:3px">${s.trxSupplier} transaksi supplier</div>
+          </div>
+          <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:12px">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+              <span style="color:#10b981">${arrowUpIcon}</span>
+              <span style="font-size:11px;color:#10b981;font-weight:600">Pendapatan</span>
+            </div>
+            <div style="font-size:13px;font-weight:700;color:#fff">${fmt(s.pendapatan)}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:3px">${s.trxBuyer} transaksi buyer</div>
+          </div>
+        </div>
+      </div>`;
+    }
+    return `<div class="stat-card">
       <div class="stat-card-top">
         <span class="stat-label">${s.label}</span>
-        <div class="stat-icon" style="background:${s.color}22;color:${s.color}">${s.icon==='money'?moneyIcon:s.icon==='shield'?shieldIcon:svgIcon(s.icon)}</div>
+        <div class="stat-icon" style="background:${s.color}22;color:${s.color}">${iconEl}</div>
       </div>
       <div class="stat-value">${s.value}</div>
       <div class="stat-sub">${s.sub}</div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 
   const recent = trx.slice(0,5);
   if(!recent.length){ document.getElementById('recent-trx-body').innerHTML='<div class="empty">Belum ada transaksi</div>'; return; }
