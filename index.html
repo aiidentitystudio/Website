@@ -1629,8 +1629,9 @@ async function doUpload(){
     params.append('fileName',  finalName);
     params.append('mimeType',  file.type);
     params.append('fileData',  base64);
-    params.append('docNama',   docNama);
-    params.append('oldFileId', oldFileId);
+    params.append('docNama',    docNama);
+    params.append('oldFileId',  oldFileId);
+    params.append('docTanggal', document.getElementById('modal-upload').dataset.docTanggal || '');
 
     const resp = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
