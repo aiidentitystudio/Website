@@ -1617,6 +1617,7 @@ async function doUpload(){
     formData.append('fileData',  base64);
     formData.append('docNama',   docNama);
     formData.append('oldFileId', oldFileId);
+    formData.append('docTanggal', document.getElementById('modal-upload').dataset.docTanggal || '');
 
     document.getElementById('upload-bar').style.width = '60%';
     // Kirim sebagai URL-encoded agar Apps Script bisa baca via no-cors
