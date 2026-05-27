@@ -944,6 +944,130 @@ function toggleUploadBtn(){
   const btn = document.getElementById('btn-show-upload');
   if(btn) btn.style.display = (currentUser && currentUser.role==='admin') ? 'inline-block' : 'none';
 }
+
+function _resetUploadModal(){
+  document.getElementById('upload-error').style.display='none';
+  document.getElementById('upload-progress').style.display='none';
+  document.getElementById('drop-label').innerHTML = 'Klik atau drag file ke sini<br><span style="font-size:11px">PDF, Word, Excel, Gambar, dll</span>';
+  document.getElementById('upload-file').value='';
+  document.getElementById('btn-upload').disabled=false;
+  document.getElementById('upload-ket').value='';
+  document.getElementById('modal-upload').dataset.docNama = '';
+  document.getElementById('modal-upload').dataset.oldUrl  = '';
+}
+
+function openUploadModal(){
+  const sel = document.getElementById('upload-mitra');
+  sel.innerHTML = '<option value="">-- Pilih Mitra --</option>';
+  DATA.mitra.forEach(m=>{
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = m.nama + ' (' + (m.tipe||'') + ')';
+    sel.appendChild(opt);
+  });
+  _resetUploadModal();
+  document.getElementById('modal-upload').style.display='flex';
+}
+
+function openUploadModalWithDoc(d){
+  const sel = document.getElementById('upload-mitra');
+  sel.innerHTML = '<option value="">-- Pilih Mitra --</option>';
+  DATA.mitra.forEach(m=>{
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = m.nama + ' (' + (m.tipe||'') + ')';
+    sel.appendChild(opt);
+  });
+  _resetUploadModal();
+  sel.value = d.mitraId || '';
+  const jenisEl = document.getElementById('upload-jenis');
+  if(d.tipe) jenisEl.value = d.tipe;
+  document.getElementById('upload-ket').value = d.nama || '';
+  document.getElementById('modal-upload').dataset.docNama = d.nama || '';
+  document.getElementById('modal-upload').dataset.oldUrl  = d.url  || '';
+  document.getElementById('modal-upload').style.display='flex';
+}
+
+function closeUploadModal(){
+  document.getElementById('modal-upload').style.display='none';
+}
+
+function onFileSelected(input){
+  if(input.files && input.files[0]){
+    const f = input.files[0];
+    document.getElementById('drop-label').innerHTML = '✅ <strong style="color:#fff">' + f.name + '</strong><br><span style="font-size:11px;color:var(--muted)">' + (f.size/1024).toFixed(1) + ' KB</span>';
+  }
+}
+
+async function doUpload(){
+  const mitraId  = document.getElementById('upload-mitra').value;
+  const jenis    = document.getElementById('upload-jenis').value;
+  const ket      = document.getElementById('upload-ket').value;
+  const fileInput= document.getElementById('upload-file');
+  const errEl    = document.getElementById('upload-error');
+  const modalEl  = document.getElementById('modal-upload');
+  const docNama  = modalEl.dataset.docNama || '';
+  const oldUrl   = modalEl.dataset.oldUrl  || '';
+  errEl.style.display='none';
+
+  if(!mitraId){ errEl.textContent='Pilih mitra terlebih dahulu.'; errEl.style.display='block'; return; }
+  if(!fileInput.files || !fileInput.files[0]){ errEl.textContent='Pilih file yang akan diupload.'; errEl.style.display='block'; return; }
+
+  const file = fileInput.files[0];
+  const mitraNama = (DATA.mitra.find(m=>m.id===mitraId)||{}).nama || '';
+  const ext = file.name.includes('.') ? file.name.split('.').pop() : '';
+  const baseName = (docNama || ket || file.name.replace(/\.[^.]+$/,'')).replace(/[^a-zA-Z0-9 _\-]/g,'');
+  const today = new Date().toISOString().slice(0,10);
+  const finalName = baseName + '_' + today + (ext ? '.' + ext : '');
+
+  let oldFileId = '';
+  if(oldUrl && oldUrl.includes('drive.google.com')){
+    const m = oldUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if(m) oldFileId = m[1];
+  }
+
+  const base64 = await new Promise((res,rej)=>{
+    const reader = new FileReader();
+    reader.onload = ()=> res(reader.result.split(',')[1]);
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('upload-progress').style.display='block';
+  document.getElementById('upload-status').textContent = (oldFileId?'Mengganti':'Mengupload') + ' ' + finalName + '...';
+  document.getElementById('upload-bar').style.width = '30%';
+  document.getElementById('btn-upload').disabled = true;
+
+  try {
+    const formData = new FormData();
+    formData.append('mitraId',   mitraId);
+    formData.append('mitraNama', mitraNama);
+    formData.append('jenis',     jenis);
+    formData.append('keterangan',ket);
+    formData.append('fileName',  finalName);
+    formData.append('mimeType',  file.type);
+    formData.append('fileData',  base64);
+    formData.append('docNama',   docNama);
+    formData.append('oldFileId', oldFileId);
+
+    document.getElementById('upload-bar').style.width = '60%';
+    const resp = await fetch(APPS_SCRIPT_URL, { method:'POST', body: formData });
+    const result = await resp.json();
+    document.getElementById('upload-bar').style.width = '100%';
+
+    if(result.success){
+      document.getElementById('upload-status').textContent = '✅ ' + (oldFileId?'File berhasil diganti!':'Berhasil diupload!');
+      setTimeout(()=>{ closeUploadModal(); loadAll(); }, 1200);
+    } else {
+      throw new Error(result.message);
+    }
+  } catch(err){
+    errEl.textContent = 'Gagal: ' + err.message;
+    errEl.style.display='block';
+    document.getElementById('upload-progress').style.display='none';
+  }
+  document.getElementById('btn-upload').disabled = false;
+}
 </script>
 </body>
 </html>
