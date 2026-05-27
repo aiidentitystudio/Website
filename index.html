@@ -459,11 +459,21 @@ tr:last-child td{border-bottom:none}
           </div>
           <div style="margin-bottom:20px">
             <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px">File Dokumen</label>
-            <div id="drop-zone" onclick="document.getElementById('upload-file').click()" style="border:2px dashed var(--border);border-radius:8px;padding:24px;text-align:center;cursor:pointer;transition:border-color 0.2s">
-              <div style="font-size:28px;margin-bottom:8px">📁</div>
-              <div id="drop-label" style="font-size:12px;color:var(--muted)">Klik atau drag file ke sini<br><span style="font-size:11px">PDF, Word, Excel, Gambar, dll</span></div>
+            <div id="drop-zone" style="border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center">
+              <div id="drop-label" style="font-size:12px;color:var(--muted);margin-bottom:14px">Belum ada file dipilih<br><span style="font-size:11px">PDF, Word, Excel, Gambar, dll</span></div>
+              <div style="display:flex;gap:10px;justify-content:center">
+                <button onclick="document.getElementById('upload-file').click()" type="button" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:#fff;font-size:12px;cursor:pointer">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  Pilih File
+                </button>
+                <button onclick="document.getElementById('upload-camera').click()" type="button" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:#fff;font-size:12px;cursor:pointer">
+                  <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  Kamera
+                </button>
+              </div>
             </div>
-            <input id="upload-file" type="file" style="display:none" onchange="onFileSelected(this)"/>
+            <input id="upload-file"   type="file" accept="*/*" style="display:none" onchange="onFileSelected(this)"/>
+            <input id="upload-camera" type="file" accept="image/*" capture="environment" style="display:none" onchange="onFileSelected(this)"/>
           </div>
           <div id="upload-progress" style="display:none;margin-bottom:14px">
             <div style="font-size:12px;color:var(--muted);margin-bottom:6px" id="upload-status">Mengupload...</div>
@@ -1516,6 +1526,9 @@ function closeUploadModal(){
 function onFileSelected(input){
   if(input.files && input.files[0]){
     const f = input.files[0];
+    // Sync kedua input agar doUpload() selalu baca file yang dipilih
+    document.getElementById('upload-file')._selectedFile   = f;
+    document.getElementById('upload-camera')._selectedFile = f;
     document.getElementById('drop-label').innerHTML = '✅ <strong style="color:#fff">' + f.name + '</strong><br><span style="font-size:11px;color:var(--muted)">' + (f.size/1024).toFixed(1) + ' KB</span>';
   }
 }
@@ -1534,7 +1547,7 @@ async function doUpload(){
   if(!mitraId){ errEl.textContent='Pilih mitra terlebih dahulu.'; errEl.style.display='block'; return; }
   if(!fileInput.files || !fileInput.files[0]){ errEl.textContent='Pilih file yang akan diupload.'; errEl.style.display='block'; return; }
 
-  const file = fileInput.files[0];
+  const file = fileInput._selectedFile || document.getElementById('upload-camera')._selectedFile || fileInput.files[0];
   const mitraNama = (DATA.mitra.find(m=>m.id===mitraId)||{}).nama || '';
   const ext = file.name.includes('.') ? file.name.split('.').pop() : '';
   const baseName = (docNama || ket || file.name.replace(/\.[^.]+$/,'')).replace(/[^a-zA-Z0-9 _\-]/g,'');
