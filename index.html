@@ -69,7 +69,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .sidebar-logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#0ea5e9);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .sidebar-logo-text{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:#fff;white-space:nowrap;overflow:hidden}
 .role-badge{margin:10px 10px 4px;padding:7px 10px;border-radius:10px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}
-.role-badge.admin{background:rgba(99,102,241,.15);color:#a5b4fc}
+.role-badge.admin{background:rgba(99,102,241,.15);color:#a5b4fc}.role-badge.owner{background:rgba(234,179,8,.15);color:#fcd34d}
 .role-badge.mitra{background:rgba(14,165,233,.15);color:#7dd3fc}
 .sidebar nav{flex:1;padding:6px 8px;overflow:hidden}
 .nav-item{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:11px;font-size:13px;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap;border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;margin-bottom:2px}
@@ -529,29 +529,33 @@ function doLogout(){
 }
 
 // ── INIT APP ──────────────────────────────────────────────────────────────────
+function isPrivileged(){ return currentUser.role==='admin' || currentUser.role==='owner'; }
+function canUpload(){    return currentUser.role==='admin'; }
+
 function initApp(){
-  const isAdmin = currentUser.role==='admin';
+  const priv = isPrivileged();
+  const role = currentUser.role;
 
   // Role badge
   const rb = document.getElementById('role-badge');
-  rb.className = 'role-badge '+(isAdmin?'admin':'mitra');
-  document.getElementById('role-label').textContent = isAdmin?'Administrator':'Mitra';
+  rb.className = 'role-badge ' + (role==='admin' ? 'admin' : role==='owner' ? 'owner' : 'mitra');
+  document.getElementById('role-label').textContent = role==='admin' ? 'Administrator' : role==='owner' ? 'Owner' : 'Mitra';
 
   // User info
   document.getElementById('user-name').textContent = currentUser.name||currentUser.username;
   document.getElementById('user-uname').textContent = currentUser.username;
 
   // Nav
-  const navItems = isAdmin ? [
-    {key:'dashboard', label:'Dashboard',    icon:'dashboard'},
-    {key:'transactions', label:'Transaksi', icon:'transactions'},
-    {key:'documents', label:'Dokumen',      icon:'documents'},
-    {key:'partners', label:'Data Mitra',    icon:'partners'},
-    {key:'kontrol', label:'Kontrol Data',   icon:'kontrol'},
+  const navItems = priv ? [
+    {key:'dashboard',    label:'Dashboard',    icon:'dashboard'},
+    {key:'transactions', label:'Transaksi',    icon:'transactions'},
+    {key:'documents',    label:'Dokumen',      icon:'documents'},
+    {key:'partners',     label:'Data Mitra',   icon:'partners'},
+    {key:'kontrol',      label:'Kontrol Data', icon:'kontrol'},
   ] : [
-    {key:'dashboard', label:'Ringkasan',       icon:'dashboard'},
-    {key:'transactions', label:'Transaksi Saya', icon:'transactions'},
-    {key:'documents', label:'Dokumen Saya',    icon:'documents'},
+    {key:'dashboard',    label:'Ringkasan',       icon:'dashboard'},
+    {key:'transactions', label:'Transaksi Saya',  icon:'transactions'},
+    {key:'documents',    label:'Dokumen Saya',    icon:'documents'},
   ];
 
   const nav = document.getElementById('sidebar-nav');
@@ -611,8 +615,8 @@ function badge(val){
   const cls = map[val]||'arsip';
   return `<span class="badge badge-${cls}">${val}</span>`;
 }
-function myTrx(){ return currentUser.role==='admin' ? DATA.transaksi : DATA.transaksi.filter(t=>t.mitraId===currentUser.mitraId); }
-function myDoc(){ return currentUser.role==='admin' ? DATA.dokumen : DATA.dokumen.filter(d=>d.mitraId===currentUser.mitraId); }
+function myTrx(){ return isPrivileged() ? DATA.transaksi : DATA.transaksi.filter(t=>t.mitraId===currentUser.mitraId); }
+function myDoc(){ return isPrivileged() ? DATA.dokumen : DATA.dokumen.filter(d=>d.mitraId===currentUser.mitraId); }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function renderDashboard(){
@@ -622,7 +626,7 @@ function renderDashboard(){
   const total = trx.reduce((a,b)=>a+(Number(b.jumlah)||0),0);
   const lunas = trx.filter(t=>t.status==='Lunas');
 
-  document.getElementById('dash-title').textContent = isAdmin?'Dashboard Admin':'Ringkasan Akun';
+  document.getElementById('dash-title').textContent = isAdmin ? (currentUser.role==='owner'?'Dashboard Owner':'Dashboard Admin') : 'Ringkasan Akun';
   document.getElementById('dash-sub').textContent = isAdmin
     ? `${DATA.mitra.length} mitra · ${DATA.transaksi.length} transaksi · ${DATA.dokumen.length} dokumen`
     : currentUser.name;
@@ -684,7 +688,7 @@ function setTrxFilter(val, el){
   renderTrx();
 }
 function renderTrx(){
-  const isAdmin = currentUser.role==='admin';
+  const isAdmin = isPrivileged();
   const q = (document.getElementById('trx-search')||{}).value||'';
   let rows = myTrx();
   if(trxFilter!=='Semua') rows=rows.filter(t=>t.status===trxFilter);
@@ -724,7 +728,7 @@ function setDocFilter(val, el){
 }
 function renderDocs(){
   toggleUploadBtn();
-  const isAdmin = currentUser.role==='admin';
+  const isAdmin = isPrivileged();
   const q = (document.getElementById('doc-search')||{}).value||'';
   let rows = myDoc();
   if(docFilter!=='Semua') rows=rows.filter(d=>d.tipe===docFilter);
@@ -846,7 +850,7 @@ function openDocModal(d){
   const uploadLabel = document.getElementById('modal-upload-label');
 
   // Tampilkan tombol Upload/Ganti hanya untuk admin
-  if(currentUser && currentUser.role === 'admin'){
+  if(currentUser && canUpload()){
     uploadBtn.style.display = 'inline-flex';
     if(url){
       uploadLabel.textContent = 'Ganti';
@@ -942,7 +946,7 @@ updateOnlineStatus();
 // Tampilkan tombol upload hanya untuk admin
 function toggleUploadBtn(){
   const btn = document.getElementById('btn-show-upload');
-  if(btn) btn.style.display = (currentUser && currentUser.role==='admin') ? 'inline-block' : 'none';
+  if(btn) btn.style.display = (currentUser && canUpload()) ? 'inline-block' : 'none';
 }
 
 function _resetUploadModal(){
