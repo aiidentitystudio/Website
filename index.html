@@ -887,8 +887,9 @@ function openTrxModal(t){
   document.getElementById('trx-modal-sub').textContent = t.deskripsi;
 
   // Simpan mitraId aktif untuk keperluan dokumen & upload
-  document.getElementById('modal-trx').dataset.mitraId   = t.mitraId || '';
-  document.getElementById('modal-trx').dataset.mitraNama = t.mitra   || '';
+  document.getElementById('modal-trx').dataset.mitraId    = t.mitraId  || '';
+  document.getElementById('modal-trx').dataset.mitraNama  = t.mitra    || '';
+  document.getElementById('modal-trx').dataset.trxTanggal = t.tanggal  || '';
 
   // Tampilkan tombol hanya untuk admin
   const showBtn = canUpload();
@@ -916,7 +917,25 @@ function toggleTrxDokumen(){
     label.textContent   = 'Sembunyikan';
 
     // Tampilkan dokumen milik mitra ini
-    const docs = DATA.dokumen.filter(d=>d.mitraId===mitraId);
+    // Filter dokumen berdasarkan mitraId DAN tanggal yang sama dengan transaksi
+    const trxTanggal = document.getElementById('modal-trx').dataset.trxTanggal || '';
+    // Normalisasi tanggal: angka Excel atau string YYYY-MM-DD -> string YYYY-MM-DD
+    function normTgl(val){
+      if(!val) return '';
+      const n = Number(val);
+      if(!isNaN(n) && n > 40000){
+        // Konversi angka Excel ke tanggal
+        const d = new Date(Math.round((n - 25569) * 86400 * 1000));
+        return d.toISOString().slice(0,10);
+      }
+      return String(val).trim().slice(0,10);
+    }
+    const trxTglNorm = normTgl(trxTanggal);
+    const docs = DATA.dokumen.filter(d=>{
+      if(d.mitraId !== mitraId) return false;
+      if(!trxTglNorm) return true;
+      return normTgl(d.tanggal) === trxTglNorm;
+    });
     const listEl = document.getElementById('trx-dokumen-list');
 
     if(!docs.length){
