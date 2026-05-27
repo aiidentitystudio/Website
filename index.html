@@ -488,8 +488,11 @@ function parseCSV(text){
     const vals = splitLine(line);
     const obj={};
     headers.forEach((h,i)=>{ obj[h]=vals[i]||''; });
+    // Normalize kolom agar konsisten (mitraid -> mitraId, trxid -> trxId, dll)
+    if('mitraid' in obj){ obj.mitraId = obj.mitraid; delete obj.mitraid; }
+    if('trxid'   in obj){ obj.trxId   = obj.trxid;   delete obj.trxid;   }
     return obj;
-  });
+  }).filter(row => Object.values(row).some(v => v !== '' && v !== '0' && v !== 0));
 }
 
 async function fetchCSV(url){
