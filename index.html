@@ -1125,7 +1125,7 @@ function renderDocs(){
           ${isAdmin?`<div class="doc-mitra">${d.mitra||d.mitraId}</div>`:''}
         </div>
         <div class="doc-footer">
-          <div class="doc-meta">${fmtDate(d.tanggal)} · ${d.ukuran}</div>
+          <div class="doc-meta">${fmtDate(d.tanggal)} · ${d.keterangan}</div>
           ${badge(d.status)}
         </div>
       </div>
@@ -1213,7 +1213,7 @@ function openDocModal(d){
   _activeDoc = d; // simpan referensi dokumen aktif
   document.getElementById('modal-doc-name').textContent = d.nama;
   document.getElementById('modal-doc-meta').textContent =
-    [d.tipe, fmtDate(d.tanggal), d.ukuran, d.status].filter(Boolean).join(' · ');
+    [d.tipe, fmtDate(d.tanggal), d.keterangan, d.status].filter(Boolean).join(' · ');
 
   const url = (d.url||'').trim();
   const openBtn = document.getElementById('modal-open-btn');
