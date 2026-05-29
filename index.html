@@ -787,6 +787,11 @@ function renderDashboard(){
     {label:'Total Mitra',     value:DATA.mitra.length,      sub:'Terdaftar',          icon:'partners',     color:'#6366f1'},
     {label:'Total Transaksi', value:DATA.transaksi.length,  sub:`${lunas.length} lunas`, icon:'transactions', color:'#0ea5e9'},
     {label:'Total Dokumen',   value:DATA.dokumen.length,    sub:'Semua mitra',        icon:'documents',    color:'#f59e0b'},
+    {label:'Status Transaksi', value:trx.length, sub:'Semua status', icon:'transactions', color:'#8b5cf6',
+  isStatus:true,
+  lunas: trx.filter(t=>t.status==='Lunas').length,
+  pending: trx.filter(t=>t.status==='Pending').length,
+  diproses: trx.filter(t=>t.status==='Diproses').length},
     {label:'Total Nilai',     value:fmt(totalNilai),        sub:'Pendapatan - Pengeluaran', icon:'money',   color:'#10b981', extra: true,
       pengeluaran: totalPengeluaran, pendapatan: totalPendapatan,
       trxSupplier: trxSupplier.length, trxBuyer: trxBuyer.length},
@@ -799,6 +804,30 @@ function renderDashboard(){
 
   document.getElementById('stats-grid').innerHTML = stats.map(s=>{
     const iconEl = s.icon==='money' ? moneyIcon : s.icon==='shield' ? shieldIcon : svgIcon(s.icon);
+    if(s.isStatus){
+  return `<div class="stat-card">
+    <div class="stat-card-top">
+      <span class="stat-label">${s.label}</span>
+      <div class="stat-icon" style="background:${s.color}22;color:${s.color}">${iconEl}</div>
+    </div>
+    <div class="stat-value">${s.value}</div>
+    <div class="stat-sub" style="margin-bottom:14px">${s.sub}</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px">
+        <span style="font-size:11px;color:#6ee7b7;font-weight:600">Lunas</span>
+        <span style="font-size:12px;font-weight:700;color:#fff">${s.lunas}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px">
+        <span style="font-size:11px;color:#fcd34d;font-weight:600">Pending</span>
+        <span style="font-size:12px;font-weight:700;color:#fff">${s.pending}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:8px">
+        <span style="font-size:11px;color:#a5b4fc;font-weight:600">Diproses</span>
+        <span style="font-size:12px;font-weight:700;color:#fff">${s.diproses}</span>
+      </div>
+    </div>
+  </div>`;
+  }
     if(s.extra){
       // Card Total Nilai dengan breakdown Pengeluaran & Pendapatan
       return `<div class="stat-card" style="grid-column: span 2">
