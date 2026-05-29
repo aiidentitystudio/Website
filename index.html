@@ -838,7 +838,7 @@ function renderDashboard(){
     </div>`;
   }).join('');
 
-  const recent = trx.slice(0,5);
+  const recent = trx.slice().sort((a,b)=> new Date(b.tanggal) - new Date(a.tanggal)).slice(0,5);
   if(!recent.length){ document.getElementById('recent-trx-body').innerHTML='<div class="empty">Belum ada transaksi</div>'; return; }
   document.getElementById('recent-trx-body').innerHTML = `
     <div class="table-wrap">
@@ -1104,7 +1104,8 @@ function renderDocs(){
   const q = (document.getElementById('doc-search')||{}).value||'';
   let rows = myDoc();
   if(docFilter!=='Semua') rows=rows.filter(d=>d.tipe===docFilter);
-  if(q) rows=rows.filter(d=>
+rows = rows.slice().sort((a,b)=> new Date(b.tanggal) - new Date(a.tanggal));
+if(q) rows=rows.filter(d=>
     d.nama.toLowerCase().includes(q.toLowerCase())||
     (d.mitra||'').toLowerCase().includes(q.toLowerCase())
   );
