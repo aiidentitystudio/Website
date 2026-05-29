@@ -609,6 +609,25 @@ async function loadAll(){
       fetchCSV(CSV.users),
     ]);
     DATA = {mitra,transaksi,transaksi_detail,dokumen,users};
+    DATA.transaksi = DATA.transaksi.map(t=>{
+  const dp        = Number(t.dp)        || 0;
+  const pelunasan = Number(t.pelunasan) || 0;
+  const jumlah    = Number(t.jumlah)    || 0;
+  const totalBayar = dp + pelunasan;
+  if(dp === 0 && pelunasan === 0){
+    t.status = 'Lunas';
+  } else if(totalBayar >= jumlah){
+    t.status = 'Lunas';
+  } else if(totalBayar > 0){
+    t.status = 'Diproses';
+  } else {
+    t.status = 'Pending';
+  }
+  t.dp         = dp;
+  t.pelunasan  = pelunasan;
+  t.totalBayar = totalBayar;
+  return t;
+});
     renderCurrentPage();
   } catch(e){
     console.error('Gagal memuat data:',e);
@@ -1009,6 +1028,29 @@ function openTrxModal(t){
           <span style="font-size:13px;font-weight:600;color:var(--muted)">Total</span>
           <span style="font-size:16px;font-weight:700;color:#fff;min-width:140px;text-align:right">${fmt(totalJumlah)}</span>
         </div>
+      </div>
+      <!-- Pembayaran -->
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:600;color:#fff;margin-bottom:10px">Riwayat Pembayaran</div>
+        ${t.dp ? `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:8px;margin-bottom:6px">
+          <span style="font-size:12px;color:#a5b4fc">DP</span>
+          <span style="font-size:12px;font-weight:600;color:#fff">${fmt(t.dp)}</span>
+        </div>` : ''}
+        ${t.pelunasan ? `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;margin-bottom:6px">
+          <span style="font-size:12px;color:#6ee7b7">Pelunasan</span>
+          <span style="font-size:12px;font-weight:600;color:#fff">${fmt(t.pelunasan)}</span>
+        </div>` : ''}
+        ${(t.dp || t.pelunasan) ? `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;margin-top:4px;border-top:1px solid var(--border)">
+          <span style="font-size:12px;color:var(--muted)">Total Terbayar</span>
+          <span style="font-size:13px;font-weight:700;color:#fff">${fmt(t.totalBayar)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px">
+          <span style="font-size:12px;color:var(--muted)">Sisa</span>
+          <span style="font-size:13px;font-weight:700;color:${(Number(t.jumlah)-t.totalBayar)<=0?'#10b981':'#ef4444'}">${fmt(Math.max(0, Number(t.jumlah)-t.totalBayar))}</span>
+        </div>` : '<div style="font-size:12px;color:var(--muted)">Lunas</div>'}
       </div>
     </div>`;
 
