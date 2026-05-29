@@ -809,7 +809,6 @@ function renderDashboard(){
         <div class="stat-value">${s.value}</div>
         <div class="stat-sub" style="margin-bottom:14px">${s.sub}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:12px">
           <div onclick="openBreakdown('supplier')" style="cursor:pointer;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:12px">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
               <span style="color:#ef4444">${arrowDownIcon}</span>
@@ -818,7 +817,6 @@ function renderDashboard(){
             <div style="font-size:13px;font-weight:700;color:#fff">${fmt(s.pengeluaran)}</div>
             <div style="font-size:10px;color:var(--muted);margin-top:3px">${s.trxSupplier} transaksi supplier</div>
           </div>
-          <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:12px">
           <div onclick="openBreakdown('buyer')" style="cursor:pointer;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:12px">
             <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
               <span style="color:#10b981">${arrowUpIcon}</span>
