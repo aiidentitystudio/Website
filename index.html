@@ -962,7 +962,7 @@ function openTrxModal(t){
     <tr style="border-bottom:1px solid var(--border)">
       <td style="padding:8px 10px">${d.detail||'-'}</td>
       <td style="padding:8px 10px;color:var(--muted)">${d.subdetail||'-'}</td>
-      <td style="padding:8px 10px;text-align:right">${Number(d.qty||0).toLocaleString('id-ID')}</td>
+      <td style="padding:8px 10px;text-align:right">${Number(String(d.qty||0).replace(',','.'))||0}
       <td style="padding:8px 10px">${d.satuan||''}</td>
       <td style="padding:8px 10px;text-align:right">${fmt(d.harga)}</td>
       <td style="padding:8px 10px;text-align:right;color:#fff;font-weight:600">${fmt(d.subtotal)}</td>
