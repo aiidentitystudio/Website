@@ -542,7 +542,7 @@ tr:last-child td{border-bottom:none}
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 // Ganti dengan URL Apps Script Anda setelah deploy
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby2IsA0qxbqsLxCqHftie8JfkQwILFerH-N-OUo5SnqQjA_oKxBngQ_P2MkUdBjmQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxniS52IQOuhrCeOaJPUu3KtFokgyAunvqkT-cn33Wq-qPoy1GGdlZfqLswYqDSL-w/exec';
 
 const CSV = {
   mitra:            'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1359230789&single=true&output=csv',
@@ -615,7 +615,7 @@ async function loadAll(){
   const jumlah    = Number(t.jumlah)    || 0;
   const totalBayar = dp + pelunasan;
   if(dp === 0 && pelunasan === 0){
-    t.status = 'Lunas';
+    // status ikut sheet
   } else if(totalBayar >= jumlah){
     t.status = 'Lunas';
   } else if(totalBayar > 0){
@@ -1049,9 +1049,33 @@ function openTrxModal(t){
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px">
           <span style="font-size:12px;color:var(--muted)">Sisa</span>
-          <span style="font-size:13px;font-weight:700;color:${(Number(t.jumlah)-t.totalBayar)<=0?'#10b981':'#ef4444'}">${fmt(Math.max(0, Number(t.jumlah)-t.totalBayar))}</span>
+          <span style="font-size:13px;font-weight:700;color:${(totalJumlah-t.totalBayar)<=0?'#10b981':'#ef4444'}">${fmt(Math.max(0, totalJumlah-t.totalBayar))}</span>
         </div>` : '<div style="font-size:12px;color:var(--muted)">Lunas</div>'}
       </div>
+      ${isAdmin ? `
+      <!-- Form Update Pembayaran -->
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:600;color:#fff;margin-bottom:10px">Update Pembayaran</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">DP</div>
+            <input id="inp-dp" type="number" placeholder="0"
+              style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:#fff;font-size:12px"
+              value="${t.dp||''}"/>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Pelunasan</div>
+            <input id="inp-pelunasan" type="number" placeholder="0"
+              style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:#fff;font-size:12px"
+              value="${t.pelunasan||''}"/>
+          </div>
+        </div>
+        <button onclick="simpanPembayaran('${t.id}', ${totalJumlah})"
+          style="width:100%;padding:10px;background:var(--accent);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:600;cursor:pointer">
+          Simpan Pembayaran
+        </button>
+        <div id="pesan-pembayaran" style="font-size:11px;margin-top:8px;text-align:center"></div>
+      </div>` : ''}
     </div>`;
 
   document.getElementById('trx-modal-title').textContent = t.id;
@@ -1180,6 +1204,35 @@ function openBreakdown(tipe){
 }
 function closeBreakdown(){
   document.getElementById('modal-breakdown').classList.remove('open');
+}
+
+async function simpanPembayaran(trxId, jumlah){
+  const dp        = Number(document.getElementById('inp-dp').value)        || 0;
+  const pelunasan = Number(document.getElementById('inp-pelunasan').value) || 0;
+  const pesan     = document.getElementById('pesan-pembayaran');
+  pesan.style.color = '#a5b4fc';
+  pesan.textContent = 'Menyimpan...';
+  try {
+    const params = new URLSearchParams();
+    params.append('action',    'updateStatusTrx');
+    params.append('trxId',     trxId);
+    params.append('dp',        dp);
+    params.append('pelunasan', pelunasan);
+    params.append('jumlah',    jumlah);
+    const resp = await fetch(APPS_SCRIPT_URL, { method:'POST', body:params });
+    const data = await resp.json();
+    if(data.success){
+      pesan.style.color = '#10b981';
+      pesan.textContent = 'Berhasil disimpan! Status: ' + data.status;
+      await loadAll();
+    } else {
+      pesan.style.color = '#ef4444';
+      pesan.textContent = 'Gagal: ' + data.message;
+    }
+  } catch(err){
+    pesan.style.color = '#ef4444';
+    pesan.textContent = 'Error: ' + err.message;
+  }
 }
 
 function closeTrxModal(){
