@@ -996,6 +996,7 @@ function openTrxModal(t){
   document.getElementById('modal-trx').dataset.mitraId    = t.mitraId  || '';
   document.getElementById('modal-trx').dataset.mitraNama  = t.mitra    || '';
   document.getElementById('modal-trx').dataset.trxTanggal = t.tanggal  || '';
+  document.getElementById('modal-trx').dataset.trxDeskripsi = t.deskripsi || '';
 
   // Tampilkan tombol hanya untuk admin
   const showBtn = canUpload();
@@ -1025,6 +1026,7 @@ function toggleTrxDokumen(){
     // Tampilkan dokumen milik mitra ini
     // Filter dokumen berdasarkan mitraId DAN tanggal yang sama dengan transaksi
     const trxTanggal = document.getElementById('modal-trx').dataset.trxTanggal || '';
+    const trxDeskripsi = document.getElementById('modal-trx').dataset.trxDeskripsi || '';
     // Normalisasi tanggal: angka Excel atau string YYYY-MM-DD -> string YYYY-MM-DD
     function normTgl(val){
       if(!val) return '';
@@ -1038,10 +1040,11 @@ function toggleTrxDokumen(){
     }
     const trxTglNorm = normTgl(trxTanggal);
     const docs = DATA.dokumen.filter(d=>{
-      if(d.mitraId !== mitraId) return false;
-      if(!trxTglNorm) return true;
-      return normTgl(d.tanggal) === trxTglNorm;
-    });
+  if(d.mitraId !== mitraId) return false;
+  if(trxTglNorm && normTgl(d.tanggal) !== trxTglNorm) return false;
+  if(trxDeskripsi && (d.keterangan || '') !== trxDeskripsi) return false;
+  return true;
+});
     const listEl = document.getElementById('trx-dokumen-list');
 
     if(!docs.length){
