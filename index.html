@@ -84,7 +84,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-logout:hover{color:#fca5a5;background:rgba(239,68,68,.1)}
 
 /* ── MAIN ── */
-.main{flex:1;overflow-y:auto;padding:32px;padding-top:64px}
+.main{flex:1;overflow-y:auto;padding:32px;padding-top:64px;padding-left:68px}
 .page{display:none}
 .page.active{display:block}
 .page-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#fff;margin-bottom:4px}
@@ -171,8 +171,69 @@ tr:last-child td{border-bottom:none}
 .offline-bar{position:fixed;top:0;left:0;right:0;z-index:9999;padding:10px 16px;background:rgba(245,158,11,.95);color:#1c1400;font-size:13px;font-weight:600;text-align:center;display:none;align-items:center;justify-content:center;gap:8px}
 .offline-bar.show{display:flex}
 
-@media(max-width:640px){
-  .main{padding:16px}
+/* ── SIDEBAR OVERLAY (mobile) ── */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:150;backdrop-filter:blur(2px)}
+.sidebar-overlay.show{display:block}
+
+/* ── TOAST NOTIFIKASI ── */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:14px;font-size:13px;font-weight:500;color:#fff;backdrop-filter:blur(16px);box-shadow:0 8px 32px rgba(0,0,0,.4);pointer-events:auto;transform:translateX(120%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);max-width:340px}
+.toast.show{transform:translateX(0)}
+.toast-success{background:rgba(16,185,129,.85);border:1px solid rgba(16,185,129,.4)}
+.toast-error{background:rgba(239,68,68,.85);border:1px solid rgba(239,68,68,.4)}
+.toast-info{background:rgba(99,102,241,.85);border:1px solid rgba(99,102,241,.4)}
+.toast-warning{background:rgba(245,158,11,.85);border:1px solid rgba(245,158,11,.4)}
+
+/* ── MODAL KONFIRMASI ── */
+#confirm-modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)}
+#confirm-modal.open{display:flex}
+.confirm-box{background:#0f1623;border:1px solid var(--border);border-radius:18px;padding:28px 24px;max-width:360px;width:100%;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.confirm-icon{width:52px;height:52px;border-radius:14px;background:rgba(239,68,68,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:#ef4444}
+.confirm-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:#fff;margin-bottom:8px}
+.confirm-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px}
+.confirm-actions{display:flex;gap:10px;justify-content:center}
+.confirm-btn-cancel{padding:10px 22px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.confirm-btn-cancel:hover{background:rgba(255,255,255,.05);color:#fff}
+.confirm-btn-ok{padding:10px 22px;border-radius:10px;border:none;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:opacity .2s}
+.confirm-btn-ok:hover{opacity:.85}
+
+/* ── PAGINASI ── */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-top:1px solid var(--border);flex-wrap:wrap;gap:10px}
+.pagination-info{font-size:12px;color:var(--muted)}
+.pagination-btns{display:flex;align-items:center;gap:6px}
+.pg-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-family:'DM Sans',sans-serif}
+.pg-btn:hover:not(:disabled){background:rgba(255,255,255,.07);color:#fff}
+.pg-btn:disabled{opacity:.3;cursor:not-allowed}
+.pg-btn.active{background:rgba(99,102,241,.25);border-color:rgba(99,102,241,.4);color:#a5b4fc}
+.pg-per-page{padding:5px 8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);font-size:12px;outline:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+
+/* ── DELAYED REFRESH COUNTDOWN ── */
+.refresh-countdown{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:rgba(14,165,233,.12);border:1px solid rgba(14,165,233,.25);color:#7dd3fc;font-size:12px}
+.refresh-countdown-bar{height:3px;border-radius:2px;background:rgba(14,165,233,.2);margin-top:8px;overflow:hidden}
+.refresh-countdown-fill{height:100%;background:#0ea5e9;transition:width 1s linear}
+
+@media(max-width:768px){
+  .main{padding:16px;padding-top:60px}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:160;width:240px!important;transform:translateX(-100%);transition:transform .3s ease}
+  .sidebar.mobile-open{transform:translateX(0)}
+  .sidebar.collapsed{transform:translateX(-100%);width:240px!important}
+  #sidebar-toggle{top:12px;left:12px;right:auto}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .doc-grid{grid-template-columns:1fr}
+  .modal-box{max-width:100%!important;width:100%!important;border-radius:18px 18px 0 0;position:fixed;bottom:0;left:0;right:0;max-height:92vh}
+  .modal-overlay{align-items:flex-end;padding:0}
+  table{font-size:12px}
+  th,td{padding:9px 10px}
+  #toast-container{bottom:16px;right:16px;left:16px}
+  .toast{max-width:100%}
+  .filters{flex-direction:column}
+  .search-wrap{min-width:0}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr}
+  .page-title{font-size:18px}
+  .confirm-actions{flex-direction:column}
+  .confirm-btn-cancel,.confirm-btn-ok{width:100%}
 }
 
 /* ── MODAL PDF ── */
@@ -194,6 +255,27 @@ tr:last-child td{border-bottom:none}
 </style>
 </head>
 <body>
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebarMobile()"></div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- MODAL KONFIRMASI -->
+<div id="confirm-modal">
+  <div class="confirm-box">
+    <div class="confirm-icon">
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <div class="confirm-title" id="confirm-title">Konfirmasi</div>
+    <div class="confirm-sub" id="confirm-sub">Apakah Anda yakin?</div>
+    <div class="confirm-actions">
+      <button class="confirm-btn-cancel" id="confirm-cancel">Batal</button>
+      <button class="confirm-btn-ok" id="confirm-ok">Ya, Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
 <div class="offline-bar" id="offline-bar">
   <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M8.53 16.11a6 6 0 016.95 0M12 20h.01"/></svg>
   Tidak ada koneksi internet — data tidak dapat diperbarui
@@ -224,7 +306,7 @@ tr:last-child td{border-bottom:none}
 <div id="app">
   <div class="layout">
     <!-- TOGGLE BUTTON -->
-    <button id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Menu" style="position:fixed;top:14px;right:14px;z-index:200;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;color:var(--muted);" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <button id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle Menu" aria-label="Buka/Tutup Menu" style="position:fixed;top:14px;left:14px;z-index:200;width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;color:var(--muted);" onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-logo">
@@ -275,7 +357,7 @@ tr:last-child td{border-bottom:none}
         <div class="filters">
           <div class="search-wrap">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input class="search-input" id="trx-search" placeholder="Cari transaksi..." oninput="renderTrx()"/>
+            <input class="search-input" id="trx-search" placeholder="Cari transaksi..." oninput="trxPage=1;renderTrx()" aria-label="Cari transaksi"/>
           </div>
           <button class="filter-btn active" onclick="setTrxFilter('Semua',this)">Semua</button>
           <button class="filter-btn" onclick="setTrxFilter('Lunas',this)">Lunas</button>
@@ -298,7 +380,7 @@ tr:last-child td{border-bottom:none}
         <div class="filters">
           <div class="search-wrap">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input class="search-input" id="doc-search" placeholder="Cari dokumen..." oninput="renderDocs()"/>
+            <input class="search-input" id="doc-search" placeholder="Cari dokumen..." oninput="docPage=1;renderDocs()" aria-label="Cari dokumen"/>
           </div>
           <button class="filter-btn active" onclick="setDocFilter('Semua',this)">Semua</button>
           <button class="filter-btn" onclick="setDocFilter('Nota',this)">Nota</button>
@@ -560,6 +642,10 @@ let currentUser = null;
 let DATA = { mitra:[], transaksi:[], transaksi_detail:[], dokumen:[], users:[] };
 let trxFilter = 'Semua';
 let docFilter = 'Semua';
+let trxPage = 1;
+let trxPerPage = 20;
+let docPage = 1;
+let docPerPage = 12;
 
 // ── CSV PARSER ────────────────────────────────────────────────────────────────
 function parseCSV(text){
@@ -598,14 +684,21 @@ async function fetchCSV(url){
   return parseCSV(text);
 }
 
-async function loadAll(){
+async function loadAll(silent=false){
+  if(!silent){
+    // Tampilkan spinner ringan di page subtitle tanpa reset seluruh konten
+    const subEls = document.querySelectorAll('.page-sub, #dash-sub');
+    subEls.forEach(el=>{ if(!el.dataset.origText) el.dataset.origText = el.textContent; el.textContent='Memperbarui data...'; });
+  }
   try{
+    // Cache-busting: tambah timestamp agar tidak dapat data lama dari CDN Google
+    const bust = '&t=' + Date.now();
     const [mitra,transaksi,transaksi_detail,dokumen,users] = await Promise.all([
-      fetchCSV(CSV.mitra),
-      fetchCSV(CSV.transaksi),
-      fetchCSV(CSV.transaksi_detail),
-      fetchCSV(CSV.dokumen),
-      fetchCSV(CSV.users),
+      fetchCSV(CSV.mitra + bust),
+      fetchCSV(CSV.transaksi + bust),
+      fetchCSV(CSV.transaksi_detail + bust),
+      fetchCSV(CSV.dokumen + bust),
+      fetchCSV(CSV.users + bust),
     ]);
     DATA = {mitra,transaksi,transaksi_detail,dokumen,users};
     DATA.transaksi = DATA.transaksi.map(t=>{
@@ -630,7 +723,25 @@ async function loadAll(){
     renderCurrentPage();
   } catch(e){
     console.error('Gagal memuat data:',e);
+    if(!silent) showToast('Gagal memuat data. Periksa koneksi.', 'error');
   }
+}
+
+// Delayed refresh dengan countdown — dipakai setelah upload/transaksi
+// Memberi waktu Google Sheets cache untuk sinkron (~15 detik)
+function delayedRefresh(statusElId, seconds=15){
+  let sisa = seconds;
+  const el = document.getElementById(statusElId);
+  const bar = document.getElementById('upload-bar');
+  const tick = setInterval(()=>{
+    sisa--;
+    if(el) el.textContent = `✅ Berhasil! Memperbarui data dalam ${sisa}s...`;
+    if(bar) bar.style.width = (100 - (sisa/seconds)*40) + '%';
+    if(sisa <= 0){
+      clearInterval(tick);
+      loadAll();
+    }
+  }, 1000);
 }
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
@@ -672,12 +783,52 @@ async function doLogin(){
 }
 
 function doLogout(){
-  currentUser=null;
-  localStorage.removeItem('session');
-  document.getElementById('app').style.display='none';
-  document.getElementById('login-page').style.display='flex';
-  document.getElementById('inp-user').value='';
-  document.getElementById('inp-pass').value='';
+  showConfirm(
+    'Keluar dari Aplikasi',
+    'Anda akan keluar dari sesi ini. Pastikan semua data sudah tersimpan.',
+    () => {
+      currentUser=null;
+      localStorage.removeItem('session');
+      document.getElementById('app').style.display='none';
+      document.getElementById('login-page').style.display='flex';
+      document.getElementById('inp-user').value='';
+      document.getElementById('inp-pass').value='';
+    }
+  );
+}
+
+// ── TOAST NOTIFICATION ────────────────────────────────────────────────────────
+function showToast(msg, type='info', duration=3500){
+  const icons = {
+    success:'<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg>',
+    error:'<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+    info:'<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    warning:'<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  };
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.innerHTML = (icons[type]||'') + `<span>${msg}</span>`;
+  el.setAttribute('role','alert');
+  el.setAttribute('aria-live','polite');
+  document.getElementById('toast-container').appendChild(el);
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ el.classList.add('show'); }); });
+  setTimeout(()=>{
+    el.classList.remove('show');
+    setTimeout(()=>el.remove(), 400);
+  }, duration);
+}
+
+// ── CONFIRM DIALOG ────────────────────────────────────────────────────────────
+function showConfirm(title, sub, onOk, btnLabel='Ya, Lanjutkan'){
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-sub').textContent = sub;
+  document.getElementById('confirm-ok').textContent = btnLabel;
+  document.getElementById('confirm-modal').classList.add('open');
+  const okBtn = document.getElementById('confirm-ok');
+  const cancelBtn = document.getElementById('confirm-cancel');
+  function cleanup(){ document.getElementById('confirm-modal').classList.remove('open'); okBtn.onclick=null; cancelBtn.onclick=null; }
+  okBtn.onclick = ()=>{ cleanup(); onOk(); };
+  cancelBtn.onclick = cleanup;
 }
 
 // ── INIT APP ──────────────────────────────────────────────────────────────────
@@ -741,6 +892,7 @@ function navTo(key, el){
   const pg = document.getElementById('page-'+key);
   if(pg) pg.classList.add('active');
   activePage = key;
+  if(isMobile()) closeSidebarMobile();
   const _s = JSON.parse(localStorage.getItem('session')||'{}');
   if(_s.username){ _s.page = key; localStorage.setItem('session', JSON.stringify(_s)); }
   renderCurrentPage();
@@ -903,7 +1055,7 @@ function renderDashboard(){
 
 // ── TRANSAKSI ─────────────────────────────────────────────────────────────────
 function setTrxFilter(val, el){
-  trxFilter=val;
+  trxFilter=val; trxPage=1;
   document.querySelectorAll('#page-transactions .filter-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
   renderTrx();
@@ -922,8 +1074,16 @@ function renderTrx(){
     (t.mitra||'').toLowerCase().includes(q.toLowerCase())
   );
   document.getElementById('trx-page-title').textContent = isAdmin?'Semua Transaksi':'Transaksi Saya';
-  document.getElementById('trx-page-sub').textContent = `${rows.length} data ditampilkan`;
+
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / trxPerPage));
+  if(trxPage > totalPages) trxPage = totalPages;
+  const start = (trxPage-1)*trxPerPage;
+  const pageRows = rows.slice(start, start+trxPerPage);
+
+  document.getElementById('trx-page-sub').textContent = `${total} data · halaman ${trxPage} dari ${totalPages}`;
   if(!rows.length){ document.getElementById('trx-body').innerHTML='<div class="empty">Tidak ada data ditemukan</div>'; return; }
+
   document.getElementById('trx-body').innerHTML = `
     <div class="table-wrap"><table>
       <thead><tr>
@@ -936,7 +1096,7 @@ function renderTrx(){
         <th>Status</th>
       </tr></thead>
       <tbody>
-        ${rows.map(t=>`<tr style="cursor:pointer" onclick="openTrxModal(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+        ${pageRows.map(t=>`<tr style="cursor:pointer" onclick="openTrxModal(${JSON.stringify(t).replace(/"/g,'&quot;')})" role="button" tabindex="0" aria-label="Lihat detail transaksi ${t.id}">
           <td class="mono">${t.id}</td>
           ${isAdmin?`<td>${t.mitra||t.mitraId}</td>`:''}
           <td>${t.tipe ? badge(t.tipe) : '<span style="color:var(--muted)">-</span>'}</td>
@@ -946,7 +1106,8 @@ function renderTrx(){
           <td>${badge(t.status)}</td>
         </tr>`).join('')}
       </tbody>
-    </table></div>`;
+    </table></div>
+    ${buildPagination(trxPage, totalPages, total, start, pageRows.length, 'trx')}`;
 }
 
 // ── MODAL DETAIL TRANSAKSI ────────────────────────────────────────────────────
@@ -1222,15 +1383,18 @@ async function simpanPembayaran(trxId, jumlah){
     const data = await resp.json();
     if(data.success){
       pesan.style.color = '#10b981';
-      pesan.textContent = 'Berhasil disimpan! Status: ' + data.status;
-      await loadAll();
+      pesan.textContent = '✅ Berhasil disimpan! Status: ' + data.status;
+      showToast('Pembayaran berhasil disimpan! Status: ' + data.status, 'success');
+      setTimeout(()=>{ loadAll(true); }, 1000);
     } else {
       pesan.style.color = '#ef4444';
       pesan.textContent = 'Gagal: ' + data.message;
+      showToast('Gagal menyimpan pembayaran: ' + data.message, 'error');
     }
   } catch(err){
     pesan.style.color = '#ef4444';
     pesan.textContent = 'Error: ' + err.message;
+    showToast('Error: ' + err.message, 'error');
   }
 }
 
@@ -1240,7 +1404,7 @@ function closeTrxModal(){
 
 // ── DOKUMEN ───────────────────────────────────────────────────────────────────
 function setDocFilter(val, el){
-  docFilter=val;
+  docFilter=val; docPage=1;
   document.querySelectorAll('#page-documents .filter-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
   renderDocs();
@@ -1251,17 +1415,24 @@ function renderDocs(){
   const q = (document.getElementById('doc-search')||{}).value||'';
   let rows = myDoc();
   if(docFilter!=='Semua') rows=rows.filter(d=>d.tipe===docFilter);
-rows = rows.slice().sort((a,b)=> new Date(b.tanggal) - new Date(a.tanggal));
-if(q) rows=rows.filter(d=>
+  rows = rows.slice().sort((a,b)=> new Date(b.tanggal) - new Date(a.tanggal));
+  if(q) rows=rows.filter(d=>
     d.nama.toLowerCase().includes(q.toLowerCase())||
     (d.mitra||'').toLowerCase().includes(q.toLowerCase())
   );
   document.getElementById('doc-page-title').textContent = isAdmin?'Semua Dokumen':'Dokumen Saya';
-  document.getElementById('doc-page-sub').textContent = `${rows.length} dokumen`;
+
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / docPerPage));
+  if(docPage > totalPages) docPage = totalPages;
+  const start = (docPage-1)*docPerPage;
+  const pageRows = rows.slice(start, start+docPerPage);
+
+  document.getElementById('doc-page-sub').textContent = `${total} dokumen · halaman ${docPage} dari ${totalPages}`;
   if(!rows.length){ document.getElementById('doc-body').innerHTML='<div class="empty">Tidak ada dokumen ditemukan</div>'; return; }
   document.getElementById('doc-body').innerHTML = `<div class="doc-grid">
-    ${rows.map(d=>`
-      <div class="doc-card" onclick="openDocModal(${JSON.stringify(d).replace(/"/g,'&quot;')})">
+    ${pageRows.map(d=>`
+      <div class="doc-card" onclick="openDocModal(${JSON.stringify(d).replace(/"/g,'&quot;')})" role="button" tabindex="0" aria-label="Lihat dokumen ${d.nama}">
         <div class="doc-card-top">
           <div class="doc-icon">
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
@@ -1278,7 +1449,47 @@ if(q) rows=rows.filter(d=>
         </div>
       </div>
     `).join('')}
+  </div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:0 0 16px 16px;margin-top:-1px">
+    ${buildPagination(docPage, totalPages, total, start, pageRows.length, 'doc')}
   </div>`;
+}
+
+// ── PAGINASI HELPER ───────────────────────────────────────────────────────────
+function buildPagination(page, totalPages, total, start, count, key){
+  const perPage = key==='trx' ? trxPerPage : docPerPage;
+  const nums = [];
+  for(let i=1;i<=totalPages;i++){
+    if(i===1||i===totalPages||Math.abs(i-page)<=1) nums.push(i);
+    else if(nums[nums.length-1]!=='...') nums.push('...');
+  }
+  return `<div class="pagination">
+    <div class="pagination-info">
+      Menampilkan <b style="color:#fff">${start+1}–${start+count}</b> dari <b style="color:#fff">${total}</b> data
+      &nbsp;|&nbsp; Per halaman:
+      <select class="pg-per-page" onchange="setPgPerPage('${key}',this.value)" aria-label="Jumlah per halaman">
+        ${[10,20,50,100].map(n=>`<option value="${n}"${perPage===n?' selected':''}>${n}</option>`).join('')}
+      </select>
+    </div>
+    <div class="pagination-btns" role="navigation" aria-label="Paginasi">
+      <button class="pg-btn" onclick="goPg('${key}',${page-1})" ${page<=1?'disabled':''} aria-label="Halaman sebelumnya">‹</button>
+      ${nums.map(n=> n==='...'
+        ? `<span style="color:var(--muted);padding:0 4px">…</span>`
+        : `<button class="pg-btn${n===page?' active':''}" onclick="goPg('${key}',${n})" aria-label="Halaman ${n}" aria-current="${n===page?'page':'false'}">${n}</button>`
+      ).join('')}
+      <button class="pg-btn" onclick="goPg('${key}',${page+1})" ${page>=totalPages?'disabled':''} aria-label="Halaman berikutnya">›</button>
+    </div>
+  </div>`;
+}
+function goPg(key, p){
+  if(key==='trx'){ trxPage=p; renderTrx(); }
+  else { docPage=p; renderDocs(); }
+  // Scroll ke atas halaman konten
+  document.querySelector('.main').scrollTo({top:0, behavior:'smooth'});
+}
+function setPgPerPage(key, val){
+  if(key==='trx'){ trxPerPage=Number(val); trxPage=1; renderTrx(); }
+  else { docPerPage=Number(val); docPage=1; renderDocs(); }
 }
 
 // ── MITRA ─────────────────────────────────────────────────────────────────────
@@ -1426,9 +1637,23 @@ document.addEventListener('keydown', e => {
   if(e.key === 'Escape') closeModal();
 });
 // ── SIDEBAR TOGGLE ────────────────────────────────────────────────────────────
+function isMobile(){ return window.innerWidth <= 768; }
+
 function toggleSidebar(){
   const sb = document.getElementById('sidebar');
-  sb.classList.toggle('collapsed');
+  const overlay = document.getElementById('sidebar-overlay');
+  if(isMobile()){
+    const isOpen = sb.classList.contains('mobile-open');
+    if(isOpen){ closeSidebarMobile(); }
+    else { sb.classList.add('mobile-open'); overlay.classList.add('show'); }
+  } else {
+    sb.classList.toggle('collapsed');
+  }
+}
+
+function closeSidebarMobile(){
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
 }
 
 // Restore session saat refresh
@@ -1613,13 +1838,18 @@ async function submitTambahTrx(){
 
     if(result.success){
       document.getElementById('nt-progress').textContent = '✅ Transaksi ' + result.trxId + ' berhasil disimpan!';
-      setTimeout(()=>{ closeTambahTrxModal(); loadAll(); }, 1200);
+      showToast('Transaksi ' + result.trxId + ' berhasil disimpan!', 'success');
+      setTimeout(()=>{
+        closeTambahTrxModal();
+        delayedRefresh('nt-progress');
+      }, 1000);
     } else {
       throw new Error(result.message);
     }
   } catch(err){
     errEl.textContent = 'Gagal menyimpan: ' + err.message;
     errEl.style.display = 'block';
+    showToast('Gagal menyimpan transaksi', 'error');
     document.getElementById('nt-progress').style.display = 'none';
   }
   document.getElementById('nt-submit').disabled = false;
@@ -1805,13 +2035,18 @@ async function doUpload(){
 
     if(result.success){
       document.getElementById('upload-status').textContent = '✅ ' + (oldFileId?'File berhasil diganti!':'Berhasil diupload!');
-      setTimeout(()=>{ closeUploadModal(); loadAll(); }, 1200);
+      showToast((oldFileId?'File berhasil diganti!':'Dokumen berhasil diupload!'), 'success');
+      setTimeout(()=>{
+        closeUploadModal();
+        delayedRefresh('upload-status');
+      }, 1000);
     } else {
       throw new Error(result.message);
     }
   } catch(err){
     errEl.textContent = 'Gagal: ' + err.message;
     errEl.style.display='block';
+    showToast('Upload gagal: ' + err.message, 'error');
     document.getElementById('upload-progress').style.display='none';
   }
   document.getElementById('btn-upload').disabled = false;
