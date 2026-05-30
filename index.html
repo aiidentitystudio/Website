@@ -171,9 +171,11 @@ tr:last-child td{border-bottom:none}
 .offline-bar{position:fixed;top:0;left:0;right:0;z-index:9999;padding:10px 16px;background:rgba(245,158,11,.95);color:#1c1400;font-size:13px;font-weight:600;text-align:center;display:none;align-items:center;justify-content:center;gap:8px}
 .offline-bar.show{display:flex}
 
-/* ── SIDEBAR OVERLAY (mobile) ── */
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:150;backdrop-filter:blur(2px)}
-.sidebar-overlay.show{display:block}
+/* ── SIDEBAR OVERLAY (mobile only) ── */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:150}
+@media(max-width:768px){
+  .sidebar-overlay.show{display:block}
+}
 
 /* ── TOAST NOTIFIKASI ── */
 #toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none}
@@ -1647,6 +1649,9 @@ function toggleSidebar(){
     if(isOpen){ closeSidebarMobile(); }
     else { sb.classList.add('mobile-open'); overlay.classList.add('show'); }
   } else {
+    // Desktop: hanya toggle collapsed, overlay tidak dipakai sama sekali
+    overlay.classList.remove('show');
+    sb.classList.remove('mobile-open');
     sb.classList.toggle('collapsed');
   }
 }
