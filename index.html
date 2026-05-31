@@ -394,6 +394,11 @@ tr:last-child td{border-bottom:none}
         <div id="doc-body"></div>
       </div>
 
+      <!-- LOG AKSES -->
+      <div class="page" id="page-logakses">
+        <div class="loading"><div class="spinner"></div> Memuat...</div>
+      </div>
+
       <!-- MODAL TAMBAH TRANSAKSI -->
       <div class="modal-overlay" id="modal-tambah-trx" onclick="if(event.target.id==='modal-tambah-trx') closeTambahTrxModal()" style="z-index:1001">
         <div class="modal-box" style="max-width:760px;width:95%;max-height:90vh;overflow-y:auto">
@@ -626,13 +631,15 @@ tr:last-child td{border-bottom:none}
 <script>
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 // Ganti dengan URL Apps Script Anda setelah deploy
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHid5feE_-vyWA13MrYemYLTflL9lfANTcN1DtzvOV1AjxdQW3tARcN6O8IHFI_HQ1/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTU8FXiZzKanjXp4hEeToRfLn5r6DHipi1kfwGHuteM5rUrv9h9PY0oevpw1r94sWt/exec';
 const CSV = {
   mitra:            'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1359230789&single=true&output=csv',
   transaksi:        'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1160335916&single=true&output=csv',
   transaksi_detail: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1294513007&single=true&output=csv',
   dokumen:          'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=1891807759&single=true&output=csv',
   users:            'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=518898558&single=true&output=csv',
+  // ⚠️ Ganti gid= di bawah dengan ID sheet "Log Akses" yang Anda buat di spreadsheet
+  logakses:         'https://docs.google.com/spreadsheets/d/e/2PACX-1vSZbBjOyhPKBaeHt15ZiuGiSG3m6fk-n_s9QaR_Gx-WkPR2PPcYx8ESgD5iG_bBDNN9n2lazsDFXlpe/pub?gid=66926026&single=true&output=csv',
 };
 const LOOKER_URL = 'https://datastudio.google.com/embed/reporting/006b75a2-edbe-42bc-88f8-45dfbc7f435a/page/JjBzF'; // Isi URL embed Looker Studio di sini
 
@@ -746,6 +753,164 @@ function delayedRefresh(statusElId, seconds=15){
   }, 1000);
 }
 
+// ── LOG AKSES ─────────────────────────────────────────────────────────────────
+let _logAksesCache = [];
+let _logAksesLoaded = false;
+
+async function logAkses(tipe, halaman=''){
+  if(!currentUser && tipe !== 'login') return;
+  const user = currentUser || {};
+  // Ambil info browser & IP
+  let ipInfo = { ip:'', kota:'', negara:'' };
+  try{
+    const r = await fetch('https://ipapi.co/json/');
+    if(r.ok){ const d = await r.json(); ipInfo = { ip: d.ip||'', kota: d.city||'', negara: d.country_name||'' }; }
+  } catch(e){}
+  const ua = navigator.userAgent;
+  let browser = 'Unknown';
+  if(ua.includes('Edg')) browser='Edge';
+  else if(ua.includes('OPR')||ua.includes('Opera')) browser='Opera';
+  else if(ua.includes('Chrome')) browser='Chrome';
+  else if(ua.includes('Firefox')) browser='Firefox';
+  else if(ua.includes('Safari')) browser='Safari';
+  const device = /Mobi|Android/i.test(ua) ? 'Mobile' : 'Desktop';
+  const params = new URLSearchParams();
+  params.append('action',    'logAkses');
+  params.append('username',  user.username||'');
+  params.append('nama',      user.name||user.username||'');
+  params.append('role',      user.role||'');
+  params.append('tipe',      tipe);
+  params.append('halaman',   halaman);
+  params.append('waktu',     new Date().toLocaleString('id-ID'));
+  params.append('ip',        ipInfo.ip);
+  params.append('kota',      ipInfo.kota);
+  params.append('negara',    ipInfo.negara);
+  params.append('browser',   browser);
+  params.append('device',    device);
+  try{
+    fetch(APPS_SCRIPT_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: params.toString() });
+  } catch(e){ console.warn('Log akses gagal:', e); }
+}
+
+async function loadLogAkses(){
+  const bust = '&t=' + Date.now();
+  const url = CSV.logakses + bust;
+  try{
+    const data = await fetchCSV(url);
+    _logAksesCache = data.reverse(); // terbaru di atas
+    _logAksesLoaded = true;
+  } catch(e){
+    _logAksesCache = [];
+    _logAksesLoaded = true;
+  }
+}
+
+let logPage = 1;
+const logPerPage = 25;
+let logSearch = '';
+let logFilterTipe = 'Semua';
+
+function renderLogAkses(){
+  if(currentUser.role !== 'admin') return;
+  const el = document.getElementById('page-logakses');
+  if(!el) return;
+  // Selalu reload data terbaru
+  el.innerHTML = `
+    <div class="page-title">Log Akses</div>
+    <div class="page-sub">Riwayat lengkap siapa saja yang mengakses web ini</div>
+    <div class="filters">
+      <div class="search-wrap">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" id="log-search" placeholder="Cari username, nama, IP..." oninput="logSearch=this.value;logPage=1;_renderLogTable()" aria-label="Cari log"/>
+      </div>
+      <button class="filter-btn active" id="logf-semua"  onclick="setLogFilter('Semua',this)">Semua</button>
+      <button class="filter-btn"        id="logf-login"  onclick="setLogFilter('login',this)">Login</button>
+      <button class="filter-btn"        id="logf-logout" onclick="setLogFilter('logout',this)">Logout</button>
+      <button class="filter-btn"        id="logf-navigasi" onclick="setLogFilter('navigasi',this)">Navigasi</button>
+      <button class="btn-refresh" onclick="refreshLogAkses()" style="margin-left:auto">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23,4 23,11 16,11"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 11"/></svg>
+        Refresh
+      </button>
+    </div>
+    <div class="card">
+      <div id="log-table-body"><div class="loading"><div class="spinner"></div> Memuat log...</div></div>
+    </div>`;
+  loadLogAkses().then(_renderLogTable);
+}
+
+function setLogFilter(val, btn){
+  logFilterTipe = val;
+  logPage = 1;
+  document.querySelectorAll('#page-logakses .filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  _renderLogTable();
+}
+
+function refreshLogAkses(){
+  const body = document.getElementById('log-table-body');
+  if(body) body.innerHTML = '<div class="loading"><div class="spinner"></div> Memuat...</div>';
+  loadLogAkses().then(_renderLogTable);
+}
+
+function _renderLogTable(){
+  const body = document.getElementById('log-table-body');
+  if(!body) return;
+  const q = (logSearch||'').toLowerCase();
+  let rows = _logAksesCache.filter(r=>{
+    const matchFilter = logFilterTipe==='Semua' || (r.tipe||'').toLowerCase()===logFilterTipe.toLowerCase();
+    const matchSearch = !q || (r.username||'').toLowerCase().includes(q) || (r.nama||'').toLowerCase().includes(q) || (r.ip||'').includes(q) || (r.browser||'').toLowerCase().includes(q) || (r.device||'').toLowerCase().includes(q);
+    return matchFilter && matchSearch;
+  });
+  const total = rows.length;
+  const start = (logPage-1)*logPerPage;
+  const pageRows = rows.slice(start, start+logPerPage);
+  const totalPages = Math.max(1, Math.ceil(total/logPerPage));
+  const tipeBadge = t => {
+    const map = { login:'<span class="badge badge-aktif">Login</span>', logout:'<span class="badge badge-arsip">Logout</span>', navigasi:'<span class="badge badge-diproses">Navigasi</span>' };
+    return map[(t||'').toLowerCase()] || `<span class="badge badge-arsip">${t||'-'}</span>`;
+  };
+  const roleBadge = r => {
+    const map = { admin:'<span class="badge badge-admin">Admin</span>', owner:'<span class="badge" style="background:rgba(234,179,8,.15);color:#fcd34d;border-color:rgba(234,179,8,.25)">Owner</span>', mitra:'<span class="badge badge-mitra">Mitra</span>' };
+    return map[(r||'').toLowerCase()] || `<span class="badge badge-arsip">${r||'-'}</span>`;
+  };
+  if(!pageRows.length){
+    body.innerHTML = '<div class="empty">Belum ada data log akses.</div>';
+    return;
+  }
+  body.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Waktu</th><th>Username</th><th>Nama</th><th>Role</th>
+          <th>Tipe</th><th>Halaman</th><th>IP</th><th>Lokasi</th><th>Browser</th><th>Device</th>
+        </tr></thead>
+        <tbody>
+          ${pageRows.map((r,i)=>`<tr>
+            <td class="mono">${start+i+1}</td>
+            <td style="white-space:nowrap;font-size:11px">${r.waktu||'-'}</td>
+            <td class="mono">${r.username||'-'}</td>
+            <td>${r.nama||'-'}</td>
+            <td>${roleBadge(r.role)}</td>
+            <td>${tipeBadge(r.tipe)}</td>
+            <td style="font-size:11px;color:#94a3b8">${r.halaman||'-'}</td>
+            <td class="mono">${r.ip||'-'}</td>
+            <td style="font-size:11px">${[r.kota,r.negara].filter(Boolean).join(', ')||'-'}</td>
+            <td style="font-size:11px">${r.browser||'-'}</td>
+            <td style="font-size:11px">${r.device||'-'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <span class="pagination-info">Menampilkan ${start+1}–${Math.min(start+logPerPage,total)} dari ${total} log</span>
+      <div class="pagination-btns">
+        <button class="pg-btn" onclick="logPage--;_renderLogTable()" ${logPage<=1?'disabled':''}>‹</button>
+        ${Array.from({length:totalPages},(_, i)=>`<button class="pg-btn${logPage===i+1?' active':''}" onclick="logPage=${i+1};_renderLogTable()">${i+1}</button>`).join('')}
+        <button class="pg-btn" onclick="logPage++;_renderLogTable()" ${logPage>=totalPages?'disabled':''}>›</button>
+      </div>
+    </div>`;
+}
+
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 async function doLogin(){
   const username = document.getElementById('inp-user').value.trim();
@@ -769,6 +934,7 @@ async function doLogin(){
     if(user && correctPass && correctPass===password){
       currentUser = {...user};
       localStorage.setItem('session', JSON.stringify({...user, page:'dashboard'}));
+      logAkses('login');
       document.getElementById('login-page').style.display='none';
       document.getElementById('app').style.display='block';
       initApp();
@@ -789,6 +955,7 @@ function doLogout(){
     'Keluar dari Aplikasi',
     'Anda akan keluar dari sesi ini. Pastikan semua data sudah tersimpan.',
     () => {
+      logAkses('logout');
       currentUser=null;
       localStorage.removeItem('session');
       document.getElementById('app').style.display='none';
@@ -857,6 +1024,7 @@ function initApp(){
     {key:'documents',    label:'Dokumen',      icon:'documents'},
     {key:'partners',     label:'Data Mitra',   icon:'partners'},
     {key:'kontrol',      label:'Kontrol Data', icon:'kontrol'},
+    ...(role==='admin' ? [{key:'logakses', label:'Log Akses', icon:'logakses'}] : []),
   ] : [
     {key:'dashboard',    label:'Ringkasan',       icon:'dashboard'},
     {key:'transactions', label:'Transaksi Saya',  icon:'transactions'},
@@ -881,6 +1049,7 @@ function svgIcon(name){
     documents:`<svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
     partners:`<svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>`,
     kontrol:`<svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="23,6 13.5,15.5 8.5,10.5 1,18"/><polyline points="17,6 23,6 23,12"/></svg>`,
+    logakses:`<svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/><line x1="1" y1="1" x2="23" y2="23" style="display:none"/></svg>`,
   };
   return icons[name]||'';
 }
@@ -897,6 +1066,7 @@ function navTo(key, el){
   if(isMobile()) closeSidebarMobile();
   const _s = JSON.parse(localStorage.getItem('session')||'{}');
   if(_s.username){ _s.page = key; localStorage.setItem('session', JSON.stringify(_s)); }
+  if(currentUser) logAkses('navigasi', key);
   renderCurrentPage();
 }
 
@@ -906,6 +1076,7 @@ function renderCurrentPage(){
   if(activePage==='documents')     renderDocs();
   if(activePage==='partners')      renderMitra();
   if(activePage==='kontrol')       renderKontrol();
+  if(activePage==='logakses')      renderLogAkses();
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
