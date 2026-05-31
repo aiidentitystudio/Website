@@ -1204,7 +1204,13 @@ function renderDashboard(){
     </div>`;
   }).join('');
 
-  const recent = trx.slice().sort((a,b)=> new Date(b.tanggal) - new Date(a.tanggal)).slice(0,10);
+  const recent = trx.slice().sort((a,b)=> {
+    const dateDiff = new Date(b.tanggal) - new Date(a.tanggal);
+    if(dateDiff !== 0) return dateDiff;
+    const aNum = parseInt((a.id||'').replace('TRX-','')) || 0;
+    const bNum = parseInt((b.id||'').replace('TRX-','')) || 0;
+    return bNum - aNum;
+  }).slice(0,10);
   if(!recent.length){ document.getElementById('recent-trx-body').innerHTML='<div class="empty">Belum ada transaksi</div>'; return; }
   document.getElementById('recent-trx-body').innerHTML = `
     <div class="table-wrap">
@@ -1240,7 +1246,13 @@ function renderTrx(){
   const q = (document.getElementById('trx-search')||{}).value||'';
   let rows = myTrx();
   if(trxFilter!=='Semua') rows=rows.filter(t=>t.status===trxFilter);
-  rows = rows.slice().sort((a,b)=> new Date(b.tanggal) - new Date(a.tanggal));
+  rows = rows.slice().sort((a,b)=> {
+    const dateDiff = new Date(b.tanggal) - new Date(a.tanggal);
+    if(dateDiff !== 0) return dateDiff;
+    const aNum = parseInt((a.id||'').replace('TRX-','')) || 0;
+    const bNum = parseInt((b.id||'').replace('TRX-','')) || 0;
+    return bNum - aNum;
+  });
   if(q) rows=rows.filter(t=>
     t.id.toLowerCase().includes(q.toLowerCase())||
     t.deskripsi.toLowerCase().includes(q.toLowerCase())||
